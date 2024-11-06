@@ -78,5 +78,4 @@ keyboard: keymap=/home/atubo/bochs/share/bochs/keymaps/x11-pc-us.map
 4. 启动bochs  
 在bin目录执行./bochs，会看到如下界面  
 ![bochs-start](../00_image/bochs_start.png)
-
 选择6即可启动bochs
