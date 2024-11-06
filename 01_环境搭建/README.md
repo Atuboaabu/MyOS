@@ -3,8 +3,8 @@
 
 # 2、bochs虚拟机安装、部署
 ## 安装bochs
-1. 下载bochs: <https://sourceforge.net/projects/bochs/files/bochs/> 安装的是2.8版本
-2. 安装bochs
+1. 下载bochs: <https://sourceforge.net/projects/bochs/files/bochs/> 安装的是2.8版本  
+2. 安装bochs  
 ```shell
 tar -zxvf bochs-2.8.tar.gz
 
@@ -40,7 +40,7 @@ make
 make install
 ``` 
 
-3. 配置bochs
+3. 配置bochs  
 安装完成后可以到自己设定的bochs安装目录中查看，有两个目录：bin、share
 在bin目录下创建bochsrc.txt文件，作为bochs启动的配置文件
 ```shell
@@ -75,8 +75,8 @@ mouse: enabled=0
 keyboard: keymap=/home/atubo/bochs/share/bochs/keymaps/x11-pc-us.map
 ```
 
-4. 启动bochs
-在bin目录执行./bochs，会看到如下界面
+4. 启动bochs  
+在bin目录执行./bochs，会看到如下界面  
 ![bochs-start](../00_image/bochs_start.png)
 
 选择6即可启动bochs
