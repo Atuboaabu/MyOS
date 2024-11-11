@@ -46,8 +46,29 @@ CPU大体上分为3个部分：控制单元、运算单元、存储单元。
 IO接口是连接CPU与外设的逻辑控制部件，可分为硬件和软件两部分。硬件部分所做的都是一些实质的具体工作，其目的是协调CPU与外设之间的种种不匹配：如运算速度的不匹配、数据格式的不匹配。软件部分是指用来控制接口电路工作的驱动程序以及完成内部数据传输所需要的程序。  
 ### MBR改进：直接操作显卡进行显示
 显卡显示字符的bit位(2个字节)：  
-![显卡控制bit](../00_image/graphics_bit.png)
+![显卡控制bit](../00_image/graphics_bit.png)  
 基于mbr.asm修改得到mbr_v1.asm
 运行效果如下：绿底红字的字符闪烁：  
 ![mbr_v1](../00_image/mbr_v1.png)
+
+### MBR使用硬盘
+#### 1、硬盘控制器的端口
+硬盘常用的端口号：  
+![硬盘端口号](../00_image/AT_PortNum.png)  
+- data寄存器：负责数据管理，用于读取或写入数据；  
+- error/feature寄存器：读取硬盘失败时记录失败信息； 尚未读取的数据记录在sector count寄存器；在写硬盘时，该硬盘有了别的功能，叫Feature寄存器，有些命令需要指定额外的参数就写在Feature寄存器中；  
+- sector count寄存器：用来指定待读取或待写入的数据；  
+LBA low、LBA mid、LBA high寄存器：三个8位宽度的寄存器用来分别存储LBA(Logical Block Address)的0-7、8-15、16-23位的地址，LBA共28位，剩余的4位在device寄存器的低4位中存储；  
+- device寄存器： 低四位 0-3 用来存储LBA的 24-27 位地址；第4位用来指定通道上的主盘或从盘，0为主盘，1位从盘；第6位表示是否启用LBA寄存器，1表示启用LBA，0表示CHS(Cylinder Head Sector)模式；第5、7位固定位1，称为MBS位； 
+![device寄存器](../00_image/device_register.png)  
+- status/command寄存器：  
+读硬盘时，为status寄存器，用来给出硬盘的状态信息：  
+第0位：ERR，为1表示命令出错；第3位：data request位，1表示数据准备就绪可以读取；第6位：DRDY request位，为1表示硬盘准备就绪，在诊断硬盘时用；第7位：BSY位，为1表示硬盘忙碌中；其余位都无效暂不关注。  
+写硬盘时，为command寄存器，主要用三个命令：  
+identify：0xEC：硬盘识别；  
+read sector：0x20：读扇区；  
+write sector：0x30：写扇区；  
+![status寄存器](../00_image/status_register.png)  
+
+#### 2、常用的硬盘操作方法
 
