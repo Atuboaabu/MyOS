@@ -22,15 +22,58 @@ BIOS的入口地址0xFFFF0处存储的是一条指令：jmp far F000:E05B ; 跳�
 BIOS的最后一项工作时校验启动盘中位于0盘0道1扇区的内容。如果此扇区的末尾两个字节分别是魔数0x55和0xaa，BIOS则认为此扇区存在可执行程序-->MBR，便会将此部分程序加载到屋里地址0x7C00，随后跳转到此地址，继续执行。  
 
 ## MBR编写
-1. 简单用例，加载mbr后在屏幕上打印字符串：“MBR Start Now!”，源码参见mbr.asm。  
-编译生成img文件：
+### nasm简单用法
+NASM（Netwide Assembler）是一款常用的 x86 汇编语言编译器，适用于编写低级系统程序或操作系统内核。下面是 NASM 的一些简单用法。  
+```bash
+nasm -f 输出格式 -o 输出文件名 输入文件名
+# 将汇编文件编译为二进制
+nasm -f bin -o mbr.bin mbr.asm
+```
+- -f：指定输出文件的格式，如 bin（纯二进制）、elf（Linux 可执行文件格式）、win32（Windows 32 位格式）等。  
+- -o：指定输出文件的名称。  
+
+### 2、dd 指令说明
+dd 是一个用于复制和转换文件的命令，主要用于低级别的数据复制操作，例如制作磁盘映像、备份数据等。  
+#### 常用参数
+- if=文件（input file）：指定输入文件，即源文件路径。默认为标准输入。
+- of=文件（output file）：指定输出文件，即目标文件路径。默认为标准输出。
+- bs=字节数（block size）：设置块大小，即每次读写的数据量。常用值为 4M 或 1M，可以提高传输速度。
+- count=块数：指定复制的块数量。bs 和 count 一起决定了总的复制数据量。
+- skip=块数：跳过输入文件的前 N 个块，读取时从指定块后开始。
+- seek=块数：跳过输出文件的前 N 个块，写入时从指定块后开始（输出文件会保留前面的内容）。
+#### 进度与状态显示
+- status=progress：显示实时进度。复制过程中会显示进度信息（速度和已传输数据量），这在大文件传输时尤为有用。
+#### 数据转换参数
+- conv=notrunc：不截断输出文件，保持输出文件的原始大小，防止文件被意外截断。
+- conv=sync：将每个输入块填充到指定大小，未满部分用零填充。
+- conv=noerror：忽略读取错误，遇到错误时继续操作。
+- conv=ucase 和 conv=lcase：将数据转换为大写或小写字母（不常用）。
+#### 用法示例
+```bash
+# 1、备份整个磁盘到文件
+dd if=/dev/sdX of=/path/to/backup.img bs=4M status=progress
+# 2、从磁盘映像恢复到磁盘
+dd if=backup.img of=/dev/sdX bs=4M status=progress
+# 3、擦除磁盘前 1MB 的数据
+dd if=/dev/zero of=/dev/sdX bs=1M count=1
+# 4、写入硬盘映像文件
+dd if=mbr.bin of=hd60M.img bs=512 count=1 conv=notrunc
+```
+
+### 3、用例
+简单用例，加载mbr后在屏幕上打印字符串：“MBR Start Now!”，源码参见 mbr.asm。  
+- 编译生成img文件：
 ```shell
-nasm -f bin mbr.asm -o mbr.img
+nasm -f bin mbr.asm -o mbr.bin
+```  
+- 将二进制文件写入磁盘映像  
+```shell
+dd if=mbr.bin of=yourpath/hd60M.img bs=512 count=1 conv=notrunc
 ```  
 将img文件放到个人指定目录后，配置我们的bochsrc.txt文件：  
 ```shell
 # 配置硬盘映像文件
-ata0-master: type=disk, path="/youpath/mbr.img", mode=flat, cylinders=1, heads=1, spt=1
+ata0-master: type=disk, path="/youpath/hd60M.img", mode=flat, cylinders=1, heads=1, spt=1
 ```  
 
 ## MBR进一步完善
@@ -88,4 +131,15 @@ write sector：0x30：写扇区；
 
 #### 3、改造MBR实现硬盘读取
 MBR总内存就512字节，无法直接为操作系统的内核准备好环境，也没法将内核加载到内存运行，需要一个内核加载器loader加载到内存，交接给loader来加载内核。  
-参见mbr_v2.asm
+参见mbr_v2.asm  
+loader简单实现了一个假的加载器，目前只是用于打印一个字符串，表示我们已经从MBR进入到内核加载器的环节了：参见 loader.asm  
+需要将loader.asm编译并写入我们的磁盘中：  
+```bash
+nasm -o loader.bin -I include/ loader.asm  
+# 将loader.bin写入磁盘的第2扇区
+dd if=loader.bin of=~/bochs/hd60M.img bs=512 seek=2 count=1 conv=notrunc  
+# 调整磁盘大小为512的整数倍，否则执行会报错
+truncate -s %512 hd60M.img
+```  
+然后再启动bochs，可见如下效果：  
+![MBR_to_Loader](../00_image/MBR_to_Loader.png)  
