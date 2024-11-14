@@ -1,6 +1,6 @@
 ;------------------------------------------------------------
 %include "boot.inc"
-SECTION MBR vstart=LOADER_BASE_ADDR  
+SECTION LOADER vstart=LOADER_BASE_ADDR  
     mov byte [gs:0x00], 'L'
     mov byte [gs:0x01], 0xa4 ;0xa4 = 0x1010 0100, 绿色背景闪烁，文字颜色为红色
     mov byte [gs:0x02], 'O'
@@ -28,4 +28,4 @@ SECTION MBR vstart=LOADER_BASE_ADDR
     mov byte [gs:0x18], '!'
     mov byte [gs:0x19], 0xa4
     ;;;;;;;;;      打字字符串结束     ;;;;;;;;;;;;;;;
-    jmp $
+    ;jmp $
