@@ -41,3 +41,14 @@ SL_RPL2   equ 10b
 SL_RPL3   equ 11b
 SL_TI_GDT equ 000b
 SL_TI_LDT equ 100b
+
+;----------------------- Page Table ------------------------
+; 页表相关属性定义
+;-----------------------------------------------------------
+PAGE_BASE_ADDR    equ 0x100000
+
+PG_P              equ   1b
+PG_RW_R           equ  00b 
+PG_RW_W           equ  10b 
+PG_US_S           equ  000b 
+PG_US_U           equ  100b 

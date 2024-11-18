@@ -151,7 +151,7 @@ memory_get_done:
     inc word [print_line]
     int	 0x10            ; 10h 号中断
 
-    ;--------2、进入实模式--------
+    ;--------2、进入保护模式--------
     ;--------2.1、打开A20--------
     in al, 0x92
     or al, 0x02
@@ -176,32 +176,88 @@ p_mode_start:
     mov ss, ax
     mov esp, LOADER_STACK_TOP
     mov ax, SL_VIDEO
+    mov gs, ax
 
-    mov byte [gs:0xA0], 'L'
-    mov byte [gs:0xA1], 0x07 ;0x07 = 0000 0111, 黑色背景，白色字体
-    mov byte [gs:0xA2], 'O'
-    mov byte [gs:0xA3], 0x07
-    mov byte [gs:0xA4], 'A'
-    mov byte [gs:0xA5], 0x07
-    mov byte [gs:0xA6], 'D'
-    mov byte [gs:0xA7], 0x07
-    mov byte [gs:0xA8], 'E'
-    mov byte [gs:0xA9], 0x07
-    mov byte [gs:0xAA], 'R'
-    mov byte [gs:0xAB], 0x07
-    mov byte [gs:0xAC], ' '
-    mov byte [gs:0xAD], 0x07
-    mov byte [gs:0xAE], 'S'
-    mov byte [gs:0xAF], 0x07
-    mov byte [gs:0xB0], 't'
-    mov byte [gs:0xB1], 0x07
-    mov byte [gs:0xB2], 'a'
-    mov byte [gs:0xB3], 0x07
-    mov byte [gs:0xB4], 'r'
-    mov byte [gs:0xB5], 0x07
-    mov byte [gs:0xB6], 't'
-    mov byte [gs:0xB7], 0x07
-    mov byte [gs:0xB8], '!'
-    mov byte [gs:0xB9], 0x07
+    ;创建页表
+    call setup_page
 
+    ;要将描述符表地址及偏移量写入内存gdt_ptr,一会用新地址重新加载
+    sgdt [gdt_ptr]
+
+    ;将gdt描述符中视频段描述符中的段基址 + 0xc0000000
+    mov ebx, [gdt_ptr + 2] 
+    ;视频段是第3个段描述符,每个描述符是8字节,故0x18。
+    ;段描述符的高4字节的最高位是段基址的31~24位
+    or dword [ebx + 0x18 + 4], 0xc0000000
+                            
+    ;将gdt的基址加上0xc0000000使其成为内核所在的高地址, 把 GDT 也移到内核空间中
+    add dword [gdt_ptr + 2], 0xc0000000
+
+    ;将栈指针同样映射到内核地址
+    add esp, 0xc0000000
+
+    ;把页目录地址赋给cr3
+    mov eax, PAGE_BASE_ADDR
+    mov cr3, eax
+
+    ;打开cr0的pg位(第31位)
+    mov eax, cr0
+    or eax, 0x80000000
+    mov cr0, eax
+
+    ;在开启分页后,用gdt新的地址重新加载
+    lgdt [gdt_ptr]             ; 重新加载
+
+    mov byte [gs:1600], "V"
+    mov byte [gs:1601], 0x07
     jmp $
+
+;-------- 页表创建 --------
+;-------- 1、清空页表目录对应内存 --------
+setup_page:
+    mov ecx, 4096
+    mov esi, 0
+.clear_page_dir:
+    mov byte[PAGE_BASE_ADDR + esi], 0
+    inc esi
+    loop .clear_page_dir
+
+;-------- 2、创建第 1 个PDE --------
+.create_pde:
+    mov eax, PAGE_BASE_ADDR
+    add eax, 0x1000
+    mov ebx, eax
+
+    or eax, PG_US_U | PG_RW_W | PG_P
+    ;将页表地址和属性写入第一个页目录项（用于映射 0x00000000~0x003FFFFF）。
+    mov [PAGE_BASE_ADDR + 0], eax
+    ;设置第768个目录项，使 0xC0000000~0xC03FFFFF 映射到相同的物理地址。这用于内核地址映射。
+    mov [PAGE_BASE_ADDR + 0xC00], eax
+
+;-------- 3、最末尾的 1 个PDE，使其指向PDE的起始位置 --------
+    sub eax, 0x1000
+    mov [PAGE_BASE_ADDR + 4092], eax
+
+;-------- 4、创建第 1 个PDE 对应的页表项PTE --------
+    mov ecx, 256 ;每个页表对应大小为4KB，低端1MB地址对应 1MB / 4KB = 256个PTE
+    mov esi, 0
+    mov edx, PG_US_U | PG_RW_W | PG_P
+.create_pte: ;对应地址0~0x10000
+    mov [ebx + esi * 4], edx
+    add edx, 0x1000
+    inc esi
+    loop .create_pte
+
+;-------- 5、创建内核的其他 PDE --------
+    mov eax, PAGE_BASE_ADDR
+    add eax, 0x2000
+    or eax, PG_US_U | PG_RW_W | PG_P
+    mov ebx, PAGE_BASE_ADDR
+    mov ecx, 254 ; 范围为第769~1022的所有目录项数量
+    mov esi, 769
+.create_kernel_pde:
+    mov [ebx + esi * 4], eax
+    inc esi
+    add eax, 0x1000
+    loop .create_kernel_pde
+    ret
