@@ -351,3 +351,96 @@ struct MemoryMapEntry:
 - 内核空间：地址范围为 0xC0000000 到 0xFFFFFFFF，通常为 1GB，供操作系统内核和内核态的进程使用。  
 此划分方案（3GB 用户空间 + 1GB 内核空间）是典型的划分方式，许多操作系统（如 Linux）在 32 位模式下使用这种方式，但这可以由系统设计自行决定。  
 
+### 4、TBL(Translation Lookaside Buffer)
+在使用分页的内存管理系统中，CPU每次访问内存时都需要通过页表将虚拟地址转换为物理地址。然而，访问页表需要时间，尤其是多级页表可能会导致更高的开销。TLB 缓存最近使用的页表条目，减少了对页表的查找需求，从而加速了地址转换过程。  
+当 CPU 访问一个虚拟地址时，TLB 首先检查这个地址是否已经在 TLB 中缓存：  
+- TLB 命中（Hit）：如果地址在 TLB 中找到，直接使用缓存的物理地址映射，无需再访问页表。  
+- TLB 未命中（Miss）：如果地址不在 TLB 中，则需要访问页表来进行转换，并将新的映射加载到 TLB 中。  
+
+## 六、ELF文件
+ELF（Executable and Linkable Format）文件是一个模块化的二进制文件格式，被广泛用于 Unix 和 Linux 系统中，支持可执行文件、目标文件、共享库和核心转储文件。ELF 文件结构的主要组成部分如下：   
+**ELF 文件结构的组成**  
+1. ELF Header（ELF 文件头）  
+2. Program Header Table（程序头表）  
+3. Sections（节）  
+4. Section Header Table（节头表）  
+
+### 1、ELF Header（ELF 文件头）
+ELF Header 位于 ELF 文件的开头，定义了文件的基本属性，如类型、机器架构、入口地址等。其格式如下：  
+e_ident：文件标识符，通常是一个包含 ELF 魔数的数组（0x7F 'E' 'L' 'F'），用于识别文件为 ELF 格式。  
+e_type：文件类型，包括 ET_EXEC（可执行文件）、ET_REL（目标文件）等。  
+e_machine：机器架构，比如 EM_386 表示 Intel 80386。  
+e_version：ELF 版本，通常为 1。  
+e_entry：程序入口地址，即 CPU 从该地址开始执行代码。  
+e_phoff：程序头表的偏移位置（从文件开始到程序头表的字节数）。  
+e_shoff：节头表的偏移位置。  
+e_flags：处理器相关的标志。  
+e_ehsize：ELF Header 的大小。  
+e_phentsize：程序头表中每个条目的大小。  
+e_phnum：程序头表的条目数量。  
+e_shentsize：节头表中每个条目的大小。  
+e_shnum：节头表的条目数量。  
+e_shstrndx：指向字符串表的索引，通常用于存储节名。  
+
+### 2、Program Header Table（程序头表）
+程序头表是一个描述各段如何加载到内存中的数据结构，尤其用于操作系统在加载文件时使用。它包含一个条目列表，每个条目描述一个段。关键字段如下：  
+p_type：段的类型，如 PT_LOAD（加载段）、PT_DYNAMIC（动态段）。  
+p_offset：段在文件中的偏移地址。  
+p_vaddr：段在内存中的虚拟地址。  
+p_paddr：段在物理内存中的地址（用于系统引导时）。  
+p_filesz：段在文件中的大小。  
+p_memsz：段在内存中的大小。  
+p_flags：段的标志，如可执行、可写、只读等。  
+p_align：段在文件和内存中的对齐要求。  
+**常用段类型包括：**  
+.text 段：代码段，包含可执行指令。  
+.data 段：数据段，包含已初始化的全局变量。  
+.bss 段：未初始化的数据段，包含未初始化的全局变量，加载时会被置为零。  
+
+### 3、Sections（节）
+Sections 是 ELF 文件中具体的代码和数据部分。常见的 Sections 包括：  
+.text：包含程序的可执行代码。  
+.data：已初始化的全局和静态数据。  
+.bss：未初始化的全局和静态数据，不占用文件大小。  
+.rodata：只读数据，比如字符串常量。  
+.symtab 和 .strtab：符号表和字符串表，分别用于保存符号和符号名称。  
+.rel.text 和 .rela.text：包含重定位条目，提供符号地址的更新信息。  
+.debug：用于调试的附加信息。  
+
+### 4、Section Header Table（节头表）
+节头表描述每个节的信息。它的每个条目描述一个 Section 的属性，包含如下字段：  
+sh_name：节名索引，指向字符串表 .strtab 中的一个偏移。  
+sh_type：节的类型，如 SHT_PROGBITS、SHT_SYMTAB。  
+sh_flags：节的标志，如可写、可分配、可执行。  
+sh_addr：节在内存中的地址。  
+sh_offset：节在文件中的偏移。  
+sh_size：节的大小。  
+sh_link：链接信息，依赖于具体的节类型。  
+sh_info：额外信息，如节中符号的数量。  
+sh_addralign：节的对齐要求。  
+节头表通常是链接器使用的主要表，用于确定不同段和符号的关联关系。  
+
+### 5、ELF 文件的加载与执行
+当操作系统加载 ELF 文件时，会执行以下步骤：  
+读取 ELF Header，验证文件格式、架构和入口点等基本信息。  
+读取 Program Header Table，根据其信息将 .text、.data、.bss 等段映射到内存中指定位置。  
+加载依赖库（如果是动态链接文件），处理符号解析和重定位。  
+转到 e_entry 指定的入口地址，开始执行程序。  
+
+### 6、使用 readelf 和 objdump 查看 ELF 结构
+```bash
+# 查看 ELF 文件头
+readelf -h program
+# 查看程序头表
+readelf -l program
+# 查看节头表
+readelf -S program
+# 反汇编 ELF 文件
+objdump -d program
+```
+
+### 7、ELF 的一些重要特性
+- 跨平台：ELF 可以支持不同的 CPU 架构。  
+- 模块化：ELF 的分段设计和节头表，使得它非常适合链接、动态加载和共享库。  
+- 灵活性：可以用于目标文件、可执行文件、共享库和核心转储文件。  
+
