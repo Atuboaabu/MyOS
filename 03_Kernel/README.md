@@ -336,7 +336,7 @@ struct MemoryMapEntry:
 | 1级页表 | 页表索引 (20位) | - | 12位 (4KB 页内偏移) |
 | 2级页表 | 页目录索引 (10位) | 页表索引 (10位) | 12位 (4KB 页内偏移) |
 
-二级页表对应的结构：
+二级页表对应的结构：  
 ![页表目录项](../00_image/PDE.png)  
 ![页表项](../00_image/PTE.png)  
 
@@ -359,6 +359,7 @@ struct MemoryMapEntry:
 
 ## 六、ELF文件
 ELF（Executable and Linkable Format）文件是一个模块化的二进制文件格式，被广泛用于 Unix 和 Linux 系统中，支持可执行文件、目标文件、共享库和核心转储文件。ELF 文件结构的主要组成部分如下：   
+
 **ELF 文件结构的组成**  
 1. ELF Header（ELF 文件头）  
 2. Program Header Table（程序头表）  
