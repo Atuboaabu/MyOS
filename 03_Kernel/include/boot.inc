@@ -2,6 +2,11 @@
 LOADER_BASE_ADDR    equ 0x900
 LOADER_START_SECTOR equ 0x2
 
+;------------------ kernel -----------------
+KERNEL_BASE_ADDR    equ 0x70000
+KERNEL_START_SECTOR equ 0x9
+KERNEL_ENTRY_ADDR   equ 0xC0001500
+
 ;----------------------- GDT --------------------------
 ; GDT各个参数定义，将GDT人为分为高32位、低32位看
 ; 此处的定义都是在高32位的值，SD是Segment Description缩写
