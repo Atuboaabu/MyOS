@@ -13,23 +13,23 @@ section .text
 ;-------------------------------------------------------------------   
 global put_str
 put_str:
-   push ebx                 ; 备份ebx寄存器
-   push ecx                 ; 备份ecx寄存器
-   xor ecx, ecx
-   mov ebx, [esp + 12]      ; 从栈中得到待打印的字符串地址 
+    push ebx                 ; 备份ebx寄存器
+    push ecx                 ; 备份ecx寄存器
+    xor ecx, ecx
+    mov ebx, [esp + 12]      ; 从栈中得到待打印的字符串地址 
 cycle_put_char:
-   mov cl, [ebx]
-   cmp cl, 0                ; 如果处理到了字符串尾,跳到结束处返回
-   jz cycle_over
-   push ecx                 ; 为put_char函数传递参数
-   call put_char
-   add esp, 4               ; 回收参数所占的栈空间
-   inc ebx                  ; 使ebx指向下一个字符
-   jmp cycle_put_char
+    mov cl, [ebx]
+    cmp cl, 0                ; 如果处理到了字符串尾,跳到结束处返回
+    jz cycle_over
+    push ecx                 ; 为put_char函数传递参数
+    call put_char
+    add esp, 4               ; 回收参数所占的栈空间
+    inc ebx                  ; 使ebx指向下一个字符
+    jmp cycle_put_char
 cycle_over:
-   pop ecx
-   pop ebx
-   ret
+    pop ecx
+    pop ebx
+    ret
 
 ;------------------------   put_char   -----------------------------
 ;功能描述:把栈中的1个字符写入光标所在处
