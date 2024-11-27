@@ -6,8 +6,59 @@ SL_TI_GDT equ 000b
 SL_TI_LDT equ 100b
 SL_VIDEO equ (0x0003<<3) + SL_TI_GDT + SL_RPL0
 
+section .data
+    int_buffer dq 0
+
 [bits 32]
 section .text
+;------------------------   put_int   -----------------------------
+;通过put_int来打印整数，按照16进制打印
+;-------------------------------------------------------------------   
+global put_int
+put_int:
+    pushad
+    mov ebp, esp
+    mov eax, [ebp + 9 * 4]
+    mov edx, eax
+    mov edi, 7
+    mov ecx, 8
+    mov ebx, int_buffer
+.parse_num:
+    and edx, 0x0000000F
+    cmp edx, 9
+    jg .A2F
+    add edx, '0'
+    jmp .store_to_buffer
+.A2F:
+    sub edx, 10
+    add edx, 'A'
+.store_to_buffer:
+    mov [ebx + edi], dl
+    dec edi
+    shr eax, 4
+    mov edx, eax
+    loop .parse_num
+.print_buffer:
+    mov cl, '0'
+    push ecx
+    call put_char
+    add esp, 4
+    mov cl, 'x'
+    push ecx
+    call put_char
+    add esp, 4
+    inc edi
+.print_each_num:
+    mov cl, [int_buffer + edi]
+    push ecx
+    call put_char
+    add esp, 4
+    inc edi
+    cmp edi, 8
+    jl .print_each_num
+    popad
+    ret
+
 ;------------------------   put_str   -----------------------------
 ;通过put_char来打印以0字符结尾的字符串
 ;-------------------------------------------------------------------   
