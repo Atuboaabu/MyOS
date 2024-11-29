@@ -29,6 +29,7 @@ section .data
 
 section .text
 global interrupt_exit
+interrupt_exit:
     add esp, 4
     popad
     pop gs
