@@ -6,7 +6,7 @@ int main(void) {
     put_str("\nkernel start!\n");
     idt_init();
     timer_init();
-    asm volatile("sti");
+    interrupt_enable();
     while(1) {};
     return 0;
 }

@@ -69,6 +69,36 @@ void pic_init()
     put_str("pic init done!\n");
 }
 
+/* 开启中断 */
+void interrupt_enable()
+{
+    asm volatile("sti");  // Set Interrupt Flag
+}
+
+/* 关闭中断 */
+void interrupt_disable()
+{
+    asm volatile("cli");  // Clear Interrupt Flag
+}
+
+/* 设置中断的状态中断 */
+void set_interrupt_status(enum interrupt_status status)
+{
+    if (status == INTERRUPT_ENABLE) {
+        interrupt_enable();
+    } else {
+        interrupt_disable();
+    }
+}
+
+/* 获取中断的状态中断 */
+enum interrupt_status get_interrupt_status()
+{
+    uint32_t eflags = 0; 
+    asm volatile("pushfl; popl %0" : "=g" (eflags));
+    return (EFLAGS_IF & eflags) ? INTERRUPT_ENABLE : INTERRUPT_DISABLE;
+}
+
 /* 中断部分初始化函数 */
 void idt_init()
 {
