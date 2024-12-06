@@ -6,7 +6,7 @@ INCLUDES = $(addprefix -I, $(DIRS))
 BUILD_DIR = ./build
 OBJS = $(BUILD_DIR)/main.o $(BUILD_DIR)/interrupt.o $(BUILD_DIR)/timer.o \
 	   $(BUILD_DIR)/debug.o $(BUILD_DIR)/print.o $(BUILD_DIR)/kernel.o \
-	   $(BUILD_DIR)/string.o $(BUILD_DIR)/bitmap.o
+	   $(BUILD_DIR)/string.o $(BUILD_DIR)/bitmap.o $(BUILD_DIR)/memory.o
 ENTRY_POINT = 0xc0001500
 LD = ld
 LDFLAGS = -m elf_i386 -Ttext $(ENTRY_POINT) -e main
@@ -20,6 +20,8 @@ $(BUILD_DIR)/main.o: kernel/main.c kernel/interrupt.h kernel/debug.h device/time
 $(BUILD_DIR)/interrupt.o: kernel/interrupt.c kernel/interrupt.h kernel/boot.h lib/stdint.h lib/kernel/io.h lib/kernel/print.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
 $(BUILD_DIR)/debug.o: kernel/debug.c kernel/debug.h kernel/interrupt.h lib/kernel/print.h
+	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
+$(BUILD_DIR)/memory.o: kernel/memory.c kernel/memory.h lib/kernel/bitmap.h lib/stdint.h lib/kernel/print.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
 $(BUILD_DIR)/timer.o: device/timer.c device/timer.h lib/kernel/io.h lib/kernel/print.h lib/stdint.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@

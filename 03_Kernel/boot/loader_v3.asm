@@ -373,7 +373,7 @@ setup_page:
     mov ebx, eax
 
     or eax, PG_US_U | PG_RW_W | PG_P
-    ;将页表地址和属性写入第一个页目录项（用于映射 0x00000000~0x003FFFFF）。
+    ;将页表地址和属性写入第一个页目录项（用于映射 0x00000000~0x003FFFFF）。保障loader能够正常在分页机制下运行。
     mov [PAGE_BASE_ADDR + 0], eax
     ;设置第768个目录项，使 0xC0000000~0xC03FFFFF 映射到相同的物理地址。这用于内核地址映射。
     mov [PAGE_BASE_ADDR + 0xC00], eax
@@ -383,10 +383,10 @@ setup_page:
     mov [PAGE_BASE_ADDR + 4092], eax
 
 ;-------- 4、创建第 1 个PDE 对应的页表项PTE --------
-    mov ecx, 256 ;每个页表对应大小为4KB，低端1MB地址对应 1MB / 4KB = 256个PTE
+    mov ecx, 256 ;每个页表对应地址范围大小为4KB（12 bit地址偏移），低端1MB地址对应 1MB / 4KB = 256个PTE
     mov esi, 0
     mov edx, PG_US_U | PG_RW_W | PG_P
-.create_pte: ;对应地址0~0x10000
+.create_pte: ;对应地址0~0x100000
     mov [ebx + esi * 4], edx
     add edx, 0x1000
     inc esi
