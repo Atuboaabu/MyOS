@@ -56,11 +56,11 @@ void memory_pool_init(uint32_t all_memory_bytes)
     bitmap_init(&(kernel_virtual_addr.pool_bitmap));
     put_str("\nkernel virtual addr init: ");
     put_str("\naddr start: ");
-    put_int(user_memory_pool.addr_start);
+    put_int(kernel_virtual_addr.addr_start);
     put_str("\npool bitmap bits addr: ");
-    put_int(user_memory_pool.pool_bitmap.bits);
+    put_int(kernel_virtual_addr.pool_bitmap.bits);
     put_str("\npool bitmap size(byte): ");
-    put_int(user_memory_pool.pool_bitmap.bytes_num);
+    put_int(kernel_virtual_addr.pool_bitmap.bytes_num);
 
     put_str("\nmemory pool init done!\n");
 }
