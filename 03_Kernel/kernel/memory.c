@@ -2,11 +2,120 @@
 #include "memory.h"
 #include "bitmap.h"
 #include "print.h"
+#include "string.h"
 
 struct memory_poll kernel_memory_pool;
 struct memory_poll user_memory_pool;
-struct memory_poll kernel_virtual_addr;  // 内核虚拟地址分配管理
+struct virtual_addr_pool kernel_virtual_addr;  // 内核虚拟地址分配管理
 
+/* 在虚拟内存地址池中申请地址：成功则返回虚拟页的起始地址, 失败则返回NULL */
+static void* vaddr_get(enum pool_flag pf, uint32_t cnt) {
+    uint32_t vaddr_start = NULL;
+    uint32_t bit_start = -1;
+    uint32_t bitcnt = 0;
+    if (pf == POOL_FLAG_KERNEL) {
+        /* 1、bitmap申请，查看是否有有连续cnt个空闲的虚拟地址 */
+        bit_start  = bitmap_apply(&kernel_virtual_addr.pool_bitmap, cnt);
+        if (bit_start == -1) {
+            return NULL;
+        }
+        /* 2、置位bitmap */
+        while(bitcnt < cnt) {
+            bitmap_set(&kernel_virtual_addr.pool_bitmap, bit_start + bitcnt, 1);
+            bitcnt++;
+        }
+        /* 3、计算申请到的虚拟地址用于返回 */
+        vaddr_start = kernel_virtual_addr.addr_start + bit_start * PG_SIZE;
+    } else {	
+        // 用户内存池,将来实现用户进程再补充
+    }
+    return (void*)vaddr_start;
+}
+
+/* 在 mem_pool 指向的物理内存池中分配1个物理页：成功则返回页框的物理地址；失败则返回 NULL */
+static void* palloc(struct pool* mem_pool) {
+    /* 判断是否有满足空闲的物理页 */
+    int bit_idx = bitmap_apply(&m_pool->pool_bitmap, 1);    // 找一个物理页面
+    if (bit_idx == -1 ) {
+        return NULL;
+    }
+    /* 置位bitmap并返回申请到的物理地址 */
+    bitmap_set(&m_pool->pool_bitmap, bit_idx, 1);	// 将此位bit_idx置1
+    uint32_t page_phyaddr = ((bit_idx * PG_SIZE) + m_pool->addr_start);
+    return (void*)page_phyaddr;
+}
+
+/* 页表中添加虚拟地址_vaddr与物理地址_page_phyaddr的映射 */
+static void page_table_add(void* _vaddr, void* _page_phyaddr) {
+    uint32_t vaddr = (uint32_t)_vaddr, page_phyaddr = (uint32_t)_page_phyaddr;
+    uint32_t* pde = pde_ptr(vaddr);
+    uint32_t* pte = pte_ptr(vaddr);
+
+    /************************   注意   *************************
+    * 执行*pte,会访问到空的pde。所以确保pde创建完成后才能执行*pte,
+    * 否则会引发page_fault。因此在*pde为0时,*pte只能出现在下面else语句块中的*pde后面。
+    * *********************************************************/
+    /* 先在页目录内判断目录项的P位，若为1,则表示该表已存在 */
+    if (*pde & 0x00000001) {	 // 页目录项和页表项的第0位为P,此处判断目录项是否存在
+        ASSERT(!(*pte & 0x00000001));
+
+        if (!(*pte & 0x00000001)) {   // 只要是创建页表,pte就应该不存在,多判断一下放心
+            *pte = (page_phyaddr | PG_US_U | PG_RW_W | PG_P_1);    // US=1,RW=1,P=1
+        } else {			    //应该不会执行到这，因为上面的ASSERT会先执行。
+            PANIC("pte repeat");
+            *pte = (page_phyaddr | PG_US_U | PG_RW_W | PG_P_1);      // US=1,RW=1,P=1
+        }
+    } else {			    // 页目录项不存在,所以要先创建页目录再创建页表项.
+        /* 页表中用到的页框一律从内核空间分配 */
+        uint32_t pde_phyaddr = (uint32_t)palloc(&kernel_pool);
+
+        *pde = (pde_phyaddr | PG_US_U | PG_RW_W | PG_P_1);
+
+        /* 分配到的物理页地址pde_phyaddr对应的物理内存清0,
+        * 避免里面的陈旧数据变成了页表项,从而让页表混乱.
+        * 访问到pde对应的物理地址,用pte取高20位便可.
+        * 因为pte是基于该pde对应的物理地址内再寻址,
+        * 把低12位置0便是该pde对应的物理页的起始*/
+        memset((void*)((int)pte & 0xfffff000), 0, PG_SIZE);
+
+        ASSERT(!(*pte & 0x00000001));
+        *pte = (page_phyaddr | PG_US_U | PG_RW_W | PG_P_1);      // US=1,RW=1,P=1
+    }
+}
+
+/* 分配 cnt 个页：成功则返回起始虚拟地址, 失败时返回NULL */
+void* malloc_page(enum pool_flag pf, uint32_t cnt) {
+    ASSERT(cnt > 0 && cnt < 3840);  // 内核只有15MB内存，最多有 15MB / 4KB = 3840个页
+    /* 1、先申请虚拟地址 */
+    void* vaddr_start = vaddr_get(pf, cnt);
+    if (vaddr_start == NULL) {
+        return NULL;
+    }
+
+   uint32_t virtual_addr = (uint32_t)vaddr_start;
+   uint32_t page_cnt = cnt;
+   struct pool* mem_pool = (pf == POOL_FLAG_KERNEL) ? &kernel_memory_pool : &user_memory_pool;
+
+    /* 2、申请物理地址并完成虚拟地址和物理地址在页表中的映射 */
+    while (page_cnt-- > 0) {
+        void* page_phyaddr = palloc(mem_pool);
+        if (page_phyaddr == NULL) {  // 失败时要将曾经已申请的虚拟地址和物理页全部回滚，在将来完成内存回收时再补充
+            return NULL;
+        }
+        page_table_add((void*)virtual_addr, page_phyaddr); // 在页表中做映射 
+        virtual_addr += PG_SIZE;		 // 下一个虚拟页
+    }
+    return vaddr_start;
+}
+
+/* 从内核申请 cnt 个内存页：成功则返回其虚拟地址，失败返回NULL */
+void* get_kernel_pages(uint32_t cnt) {
+   void* vaddr =  malloc_page(POOL_FLAG_KERNEL, cnt);
+   if (vaddr != NULL) {
+      memset(vaddr, 0, cnt * PG_SIZE);
+   }
+   return vaddr;
+}
 
 void memory_pool_init(uint32_t all_memory_bytes)
 {
@@ -67,6 +176,6 @@ void memory_pool_init(uint32_t all_memory_bytes)
 
 void memory_init()
 {
-    uint32_t memory_bytes = 32 * 1024 * 1024;
+    uint32_t memory_bytes = 32 * 1024 * 1024;  // 总共有32MB内存
     memory_pool_init(memory_bytes);
 }
