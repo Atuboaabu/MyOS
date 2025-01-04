@@ -48,16 +48,16 @@ int bitmap_apply(struct bitmap* bmp, uint32_t cnt)
     uint32_t index = byte_idx * 8 + bit_idx;
     uint32_t c = 0;
     while (index < (bmp->bytes_num * 8 - cnt)) {
-        int i = index;
-        for (i = 0; i < cnt; i++) {  // 判断是否 cnt 个连续的 bit 位可用
-            if (bitmap_check(bmp, i)) {  // 返回 true 表示已被占用，寻找下一区间
+        int i = 0;
+        for (; i < cnt; i++) {  // 判断是否 cnt 个连续的 bit 位可用
+            if (bitmap_check(bmp, index + i)) {  // 返回 true 表示已被占用，寻找下一区间
                 break;
             }
         }
         if (i == cnt) {
             return index;
         } else {
-            index = i + 1;
+            index = index + i + 1;
         }
     }
 

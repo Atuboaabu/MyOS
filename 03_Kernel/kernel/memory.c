@@ -53,7 +53,7 @@ uint32_t* get_pte_ptr(uint32_t vaddr) {
     *  3、vaddr & 0xFFC00000 获取虚拟地址对应的页表目录索引，用此索引作 页表索引 找到对应的页表地址
     *  4、PTE_INDEX(vaddr) * 4 即虚拟地址对应的页表项地址便宜
     */
-    uint32_t* pte = (uint32_t*)(0xFFC00000 + ((vaddr & 0xFFc00000) >> 10) + PTE_INDEX(vaddr) * 4);
+    uint32_t* pte = (uint32_t*)(0xFFC00000 + ((vaddr & 0xFFC00000) >> 10) + PTE_INDEX(vaddr) * 4);
     return pte;
 }
 

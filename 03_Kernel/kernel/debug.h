@@ -9,7 +9,7 @@ void panic_spain(const char* file, const int line, const char* func, const char*
 
 /* 断言：条件不满足进入断言 */
 #define ASSERT(condition)   \
-    if (!condition) {       \
+    if (!(condition)) {       \
         PANIC(#condition);  \
     }                       \
 

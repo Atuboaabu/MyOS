@@ -37,5 +37,6 @@ struct virtual_addr_pool {
 };
 
 void memory_init();
+void* get_kernel_pages(uint32_t cnt);
 
 #endif
