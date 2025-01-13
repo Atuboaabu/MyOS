@@ -5,8 +5,8 @@ void list_init(struct list* _list) {
     _list->head.prev = NULL;
     _list->head.next = &(_list->tail);
 
-    _list->head.prev = &(_list->head);
-    _list->head.next = NULL;
+    _list->tail.prev = &(_list->head);
+    _list->tail.next = NULL;
 }
 
 void list_insert_before(struct list_elem* _before_elem, struct list_elem* _elem) {

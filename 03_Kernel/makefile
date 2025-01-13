@@ -1,16 +1,16 @@
 
 CC = gcc
 CFLAGS = -m32 -Wall -c -ffreestanding -fno-pic
-DIRS = lib/ lib/kernel/ lib/kernel/list/ kernel/ device/ 
+DIRS = lib/ lib/kernel/ lib/kernel/list/ kernel/ device/ thread/
 INCLUDES = $(addprefix -I, $(DIRS))
 BUILD_DIR = ./build
 OBJS = $(BUILD_DIR)/main.o $(BUILD_DIR)/interrupt.o $(BUILD_DIR)/timer.o \
 	   $(BUILD_DIR)/debug.o $(BUILD_DIR)/print.o $(BUILD_DIR)/kernel.o \
 	   $(BUILD_DIR)/string.o $(BUILD_DIR)/bitmap.o $(BUILD_DIR)/memory.o \
-	   $(BUILD_DIR)/list.o
+	   $(BUILD_DIR)/list.o $(BUILD_DIR)/switch.o $(BUILD_DIR)/thread.o
 ENTRY_POINT = 0xc0001500
 LD = ld
-LDFLAGS = -m elf_i386 -Ttext $(ENTRY_POINT) -e main
+LDFLAGS = -m elf_i386 -Ttext $(ENTRY_POINT) -e main -Map $(BUILD_DIR)/kernel.map
 ASM = nasm
 ASMFLAGS = -f elf
 DISK_IMG = /home/atubo/bochs/hd60M.img
@@ -32,12 +32,16 @@ $(BUILD_DIR)/bitmap.o: lib/kernel/bitmap.c lib/kernel/bitmap.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
 $(BUILD_DIR)/list.o: lib/kernel/list/list.c lib/kernel/list/list.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
+$(BUILD_DIR)/thread.o: thread/thread.c thread/thread.h
+	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
 
 
 ######## 汇编文件编译 ########
 $(BUILD_DIR)/kernel.o: kernel/kernel.asm
 	$(ASM) $(ASMFLAGS) $< -o $@
 $(BUILD_DIR)/print.o: lib/kernel/print.asm
+	$(ASM) $(ASMFLAGS) $< -o $@
+$(BUILD_DIR)/switch.o: thread/switch.asm
 	$(ASM) $(ASMFLAGS) $< -o $@
 
 ######## 链接所有目标文件 ########

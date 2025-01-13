@@ -10,3 +10,10 @@ void memset(void* dst, uint8_t val, uint32_t size)
         *p++ = val;
     }
 }
+
+char* strcpy(char* dst, const char* src) {
+   ASSERT(dst != NULL && src != NULL);
+   char* p = dst;
+   while((*dst++ = *src++));
+   return p;
+}

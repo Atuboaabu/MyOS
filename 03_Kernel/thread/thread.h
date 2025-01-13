@@ -4,6 +4,9 @@
 #include "stdint.h"
 #include "list.h"
 
+/* 自定义通用函数类型,它将在很多线程函数中做为形参类型 */
+typedef void thread_func(void*);
+
 /* 进程、线程状态枚举 */
 enum TASK_STATUS {
     TASK_RUNNING,
@@ -69,5 +72,18 @@ struct PCB_INFO {
    uint32_t* pgdir;               // 进程自己页表的虚拟地址
    uint32_t stack_magic;          // 用这串数字做栈的边界标记,用于检测栈的溢出
 };
+
+/* 获取正在运行的线程的PCB指针 */
+struct PCB_INFO* get_curthread_pcb();
+/* 线程调度 */
+void thread_schedule();
+/* 当前线程将自己阻塞 */
+void thread_block(enum TASK_STATUS status);
+/* 将线程解除阻塞 */
+void thread_unblock(struct PCB_INFO* pthread);
+/* 创建新的线程 */
+struct PCB_INFO* thread_create(char* name, int prio, thread_func start_routine, void* arg);
+
+void thread_init(void);
 
 #endif

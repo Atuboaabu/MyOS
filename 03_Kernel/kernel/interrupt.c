@@ -36,6 +36,13 @@ void interrupt_handle(uint8_t intr_vec_num)
     put_str("interrupt occur: vec_num = ");
     put_int(intr_vec_num);
     put_char('\n');
+
+    if (intr_vec_num == 14) {	  // 若为Pagefault,将缺失的地址打印出来并悬停
+      int page_fault_vaddr = 0; 
+      asm ("movl %%cr2, %0" : "=r" (page_fault_vaddr));	  // cr2是存放造成page_fault的地址
+      put_str("\npage fault addr is ");put_int(page_fault_vaddr); 
+   }
+   while(1);
 }
 
 /* 中断处理函数表初始化注册 */
@@ -46,6 +53,18 @@ void exception_init()
         g_IDT_handle[i] = interrupt_handle;
     }
     put_str("exception init done!\n");
+}
+
+/* 注册中断处理函数 */
+void register_interrupt_handle(uint8_t intr_vec_num, void (*handle)(void))
+{
+    if (intr_vec_num >= IDT_SIZE) {
+        return;
+    }
+    put_str("register_interrupt_handle: vec num = ");
+    put_int(intr_vec_num);
+    put_char('\n');
+    g_IDT_handle[intr_vec_num] = handle;
 }
 
 /* 初始化可编程中断控制器 8259A */

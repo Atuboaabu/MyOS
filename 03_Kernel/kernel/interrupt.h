@@ -32,5 +32,6 @@ void interrupt_enable();
 void interrupt_disable();
 void set_interrupt_status(enum interrupt_status status);
 enum interrupt_status get_interrupt_status();
+void register_interrupt_handle(uint8_t intr_vec_num, void (*handle)(void));
 
 #endif
