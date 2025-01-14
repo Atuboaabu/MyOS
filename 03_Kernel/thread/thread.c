@@ -29,8 +29,8 @@ void thread_schedule() {
     ASSERT(get_interrupt_status() == INTERRUPT_DISABLE);
     struct PCB_INFO* cur_thread_pcb = get_curthread_pcb(); 
     if (cur_thread_pcb->status == TASK_RUNNING) { // 若此线程只是cpu时间片到了,将其加入到就绪队列尾
-        // ASSERT(!elem_find(&s_readyThreadList, &cur_thread_pcb->ready_list_tag));
-        list_append(&s_readyThreadList, &cur_thread_pcb->ready_list_tag);
+        // ASSERT(!elem_find(&s_readyThreadList, &cur_thread_pcb->general_tag));
+        list_append(&s_readyThreadList, &cur_thread_pcb->general_tag);
         cur_thread_pcb->ticks = cur_thread_pcb->priority;   // 重置 ticks 为其 priority
         cur_thread_pcb->status = TASK_READY;
     } else { 
@@ -40,7 +40,7 @@ void thread_schedule() {
     ASSERT(!list_empty(&s_readyThreadList));
     g_curThreadTag = NULL;	  // thread_tag清空
     g_curThreadTag = list_pop(&s_readyThreadList);  // 取出队列的第一个线程跳转执行
-    struct PCB_INFO* next_thread_pcb = GET_ENTRYPTR_FROM_LISTTAG(struct PCB_INFO, ready_list_tag, g_curThreadTag);
+    struct PCB_INFO* next_thread_pcb = GET_ENTRYPTR_FROM_LISTTAG(struct PCB_INFO, general_tag, g_curThreadTag);
     next_thread_pcb->status = TASK_RUNNING;
     put_str("\nschedule next = ");
     put_int((int)next_thread_pcb);
@@ -67,11 +67,11 @@ void thread_unblock(struct PCB_INFO* pthread) {
     enum interrupt_status old_status = get_interrupt_status();
     ASSERT(((pthread->status == TASK_BLOCKED) || (pthread->status == TASK_WAITING) || (pthread->status == TASK_HANGING)));
     if (pthread->status != TASK_READY) {
-        if (elem_find(&s_readyThreadList, &pthread->ready_list_tag)) {
+        if (elem_find(&s_readyThreadList, &pthread->general_tag)) {
             return;
         }
         pthread->status = TASK_READY;
-        list_push(&s_readyThreadList, &pthread->ready_list_tag);    // 放到队列的最前面,使其尽快得到调度
+        list_push(&s_readyThreadList, &pthread->general_tag);    // 放到队列的最前面,使其尽快得到调度
     } 
     set_interrupt_status(old_status);
 }
@@ -125,8 +125,8 @@ struct PCB_INFO* thread_create(char* name, int prio, thread_func start_routine, 
     init_thread_pcb(pcb, name, prio);
     init_thread_stack(pcb, start_routine, arg);
     /* 加入就绪线程队列 */
-    // ASSERT(!elem_find(&s_readyThreadList, &pcb->ready_list_tag));
-    list_append(&s_readyThreadList, &pcb->ready_list_tag);
+    // ASSERT(!elem_find(&s_readyThreadList, &pcb->general_tag));
+    list_append(&s_readyThreadList, &pcb->general_tag);
     /* 加入全部线程队列 */
     // ASSERT(!elem_find(&s_allThreadList, &pcb->all_list_tag));
     list_append(&s_allThreadList, &pcb->all_list_tag);

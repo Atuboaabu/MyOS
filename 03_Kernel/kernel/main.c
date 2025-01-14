@@ -4,6 +4,7 @@
 #include "debug.h"
 #include "memory.h"
 #include "thread.h"
+#include "console.h"
 
 void thread_A(void *arg);
 void thread_B(void *arg);
@@ -14,6 +15,7 @@ int main(void) {
     timer_init();
     memory_init();
     thread_init();
+    console_init();
 
     // void* vaddr = (uint32_t)get_kernel_pages(1);
     // if (vaddr != NULL) {
@@ -28,18 +30,20 @@ int main(void) {
 
     // }
     // ASSERT(1 == 0);
-    while(1) {};
+    while(1) {
+        console_put_str("Main  ");
+    }
     return 0;
 }
 
 void thread_A(void *arg) {
     while(1) {
-        put_str("Thread A  ");
+        console_put_str("Thread A  ");
     }
 }
 
 void thread_B(void *arg) {
     while(1) {
-        put_str("Thread B  ");
+        console_put_str("Thread B  ");
     }
 }
