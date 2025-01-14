@@ -128,7 +128,7 @@ LOAD build/console.o
 .plt.sec
  *(.plt.sec)
 
-.text           0x00000000c0001500     0x1d6f
+.text           0x00000000c0001500     0x1d21
  *(.text.unlikely .text.*_unlikely .text.unlikely.*)
  *(.text.exit .text.exit.*)
  *(.text.startup .text.startup.*)
@@ -192,26 +192,26 @@ LOAD build/console.o
  *fill*         0x00000000c0002ae5        0xb 
  .text          0x00000000c0002af0       0x15 build/switch.o
                 0x00000000c0002af0                switch_to
- .text          0x00000000c0002b05      0x4af build/thread.o
+ .text          0x00000000c0002b05      0x483 build/thread.o
                 0x00000000c0002b05                get_curthread_pcb
                 0x00000000c0002b1a                thread_schedule
-                0x00000000c0002c23                thread_block
-                0x00000000c0002c88                thread_unblock
-                0x00000000c0002e4a                thread_create
-                0x00000000c0002f66                thread_init
- .text          0x00000000c0002fb4      0x128 build/semaphore.o
-                0x00000000c0002fb4                semaphore_init
-                0x00000000c0002fd7                semaphore_P
-                0x00000000c000306f                semaphore_V
- .text          0x00000000c00030dc       0xcd build/lock.o
-                0x00000000c00030dc                lock_init
-                0x00000000c000310c                lock_acquire
-                0x00000000c0003160                lock_release
- .text          0x00000000c00031a9       0xc6 build/console.o
-                0x00000000c00031a9                console_init
-                0x00000000c00031c2                console_put_str
-                0x00000000c00031f9                console_put_char
-                0x00000000c0003238                console_put_int
+                0x00000000c0002bf7                thread_block
+                0x00000000c0002c5c                thread_unblock
+                0x00000000c0002e1e                thread_create
+                0x00000000c0002f3a                thread_init
+ .text          0x00000000c0002f88      0x16d build/semaphore.o
+                0x00000000c0002f88                semaphore_init
+                0x00000000c0002fab                semaphore_P
+                0x00000000c0003065                semaphore_V
+ .text          0x00000000c00030f5       0x66 build/lock.o
+                0x00000000c00030f5                lock_init
+                0x00000000c0003125                lock_acquire
+                0x00000000c0003140                lock_release
+ .text          0x00000000c000315b       0xc6 build/console.o
+                0x00000000c000315b                console_init
+                0x00000000c0003174                console_put_str
+                0x00000000c00031ab                console_put_char
+                0x00000000c00031ea                console_put_int
  *(.gnu.warning)
 
 .fini
@@ -220,21 +220,21 @@ LOAD build/console.o
                 [!provide]                        PROVIDE (_etext = .)
                 [!provide]                        PROVIDE (etext = .)
 
-.rodata         0x00000000c0003270      0x5de
+.rodata         0x00000000c0003224      0x628
  *(.rodata .rodata.* .gnu.linkonce.r.*)
- .rodata        0x00000000c0003270       0x3d build/main.o
- *fill*         0x00000000c00032ad        0x3 
- .rodata        0x00000000c00032b0       0xf4 build/interrupt.o
- .rodata        0x00000000c00033a4       0x5a build/timer.o
- .rodata        0x00000000c00033fe       0x32 build/debug.o
- .rodata        0x00000000c0003430       0x4f build/string.o
- *fill*         0x00000000c000347f        0x1 
- .rodata        0x00000000c0003480       0x83 build/bitmap.o
- *fill*         0x00000000c0003503        0x1 
- .rodata        0x00000000c0003504      0x124 build/memory.o
- .rodata        0x00000000c0003628      0x1fa build/thread.o
- *fill*         0x00000000c0003822        0x2 
- .rodata        0x00000000c0003824       0x2a build/semaphore.o
+ .rodata        0x00000000c0003224       0x3d build/main.o
+ *fill*         0x00000000c0003261        0x3 
+ .rodata        0x00000000c0003264       0xf4 build/interrupt.o
+ .rodata        0x00000000c0003358       0x5a build/timer.o
+ .rodata        0x00000000c00033b2       0x32 build/debug.o
+ .rodata        0x00000000c00033e4       0x4f build/string.o
+ *fill*         0x00000000c0003433        0x1 
+ .rodata        0x00000000c0003434       0x83 build/bitmap.o
+ *fill*         0x00000000c00034b7        0x1 
+ .rodata        0x00000000c00034b8      0x124 build/memory.o
+ .rodata        0x00000000c00035dc      0x1e6 build/thread.o
+ *fill*         0x00000000c00037c2        0x2 
+ .rodata        0x00000000c00037c4       0x88 build/semaphore.o
 
 .rodata1
  *(.rodata1)
@@ -243,30 +243,30 @@ LOAD build/console.o
  *(.eh_frame_hdr)
  *(.eh_frame_entry .eh_frame_entry.*)
 
-.eh_frame       0x00000000c0003850      0x84c
+.eh_frame       0x00000000c000384c      0x848
  *(.eh_frame)
- .eh_frame      0x00000000c0003850       0x74 build/main.o
- .eh_frame      0x00000000c00038c4      0x184 build/interrupt.o
+ .eh_frame      0x00000000c000384c       0x74 build/main.o
+ .eh_frame      0x00000000c00038c0      0x184 build/interrupt.o
                                         0x19c (size before relaxing)
- .eh_frame      0x00000000c0003a48       0x8c build/timer.o
+ .eh_frame      0x00000000c0003a44       0x8c build/timer.o
                                          0xa4 (size before relaxing)
- .eh_frame      0x00000000c0003ad4       0x1c build/debug.o
+ .eh_frame      0x00000000c0003ad0       0x1c build/debug.o
                                          0x34 (size before relaxing)
- .eh_frame      0x00000000c0003af0       0x40 build/string.o
+ .eh_frame      0x00000000c0003aec       0x40 build/string.o
                                          0x58 (size before relaxing)
- .eh_frame      0x00000000c0003b30       0x88 build/bitmap.o
+ .eh_frame      0x00000000c0003b2c       0x88 build/bitmap.o
                                          0xa0 (size before relaxing)
- .eh_frame      0x00000000c0003bb8      0x120 build/memory.o
+ .eh_frame      0x00000000c0003bb4      0x120 build/memory.o
                                         0x138 (size before relaxing)
- .eh_frame      0x00000000c0003cd8      0x140 build/list.o
+ .eh_frame      0x00000000c0003cd4      0x140 build/list.o
                                         0x158 (size before relaxing)
- .eh_frame      0x00000000c0003e18      0x140 build/thread.o
+ .eh_frame      0x00000000c0003e14      0x140 build/thread.o
                                         0x158 (size before relaxing)
- .eh_frame      0x00000000c0003f58       0x60 build/semaphore.o
+ .eh_frame      0x00000000c0003f54       0x60 build/semaphore.o
                                          0x78 (size before relaxing)
- .eh_frame      0x00000000c0003fb8       0x64 build/lock.o
-                                         0x7c (size before relaxing)
- .eh_frame      0x00000000c000401c       0x80 build/console.o
+ .eh_frame      0x00000000c0003fb4       0x60 build/lock.o
+                                         0x78 (size before relaxing)
+ .eh_frame      0x00000000c0004014       0x80 build/console.o
                                          0x98 (size before relaxing)
  *(.eh_frame.*)
 

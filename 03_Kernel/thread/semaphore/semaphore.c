@@ -2,6 +2,7 @@
 #include "thread.h"
 #include "print.h"
 #include "interrupt.h"
+#include "debug.h"
 
 void semaphore_init(struct semaphore *p_sema, uint32_t value) {
     p_sema->value = value;
@@ -22,6 +23,7 @@ void semaphore_P(struct semaphore *p_sema) {
     } else {
         p_sema->value--;
     }
+    ASSERT(p_sema->value == 0);
     set_interrupt_status(old_status);
 }
 
@@ -34,5 +36,6 @@ void semaphore_V(struct semaphore *p_sema) {
             GET_ENTRYPTR_FROM_LISTTAG(struct PCB_INFO, general_tag, list_pop(&(p_sema->waiters_list)));
         thread_unblock(blocked_thread_pcb);
     }
+    ASSERT(p_sema->value == 1);
     set_interrupt_status(old_status);
 }

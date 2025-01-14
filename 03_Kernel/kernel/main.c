@@ -17,19 +17,9 @@ int main(void) {
     thread_init();
     console_init();
 
-    // void* vaddr = (uint32_t)get_kernel_pages(1);
-    // if (vaddr != NULL) {
-    //     put_str("\nget kernel pages vaddr = ");
-    //     put_int((uint32_t)vaddr);
-    //     put_str("\n");
-    // }
-    thread_create("ThreadA", 40, thread_A, NULL);
-    thread_create("ThreadB", 40, thread_B, NULL);
+    thread_create("ThreadA", 2, thread_A, NULL);
+    thread_create("ThreadB", 2, thread_B, NULL);
     interrupt_enable();
-    // for (int i = 10000000; i > 0; i--) {
-
-    // }
-    // ASSERT(1 == 0);
     while(1) {
         console_put_str("Main  ");
     }

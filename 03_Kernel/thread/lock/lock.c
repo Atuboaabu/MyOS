@@ -11,21 +11,9 @@ void lock_init(struct lock* p_lock) {
 }
 
 void lock_acquire(struct lock* p_lock) {
-    if (p_lock->holder != get_curthread_pcb()) {
-        p_lock->holder = get_curthread_pcb();
-        p_lock->holder_request_num = 1;
-        semaphore_P(&(p_lock->semaphore));
-    } else {
-        p_lock->holder_request_num++;
-    }
+    semaphore_P(&(p_lock->semaphore));
 }
 
 void lock_release(struct lock* p_lock) {
-    if (p_lock->holder_request_num > 1) {
-        p_lock->holder_request_num--;
-        return;
-    }
-    p_lock->holder = NULL;
-    p_lock->holder_request_num = 0;
     semaphore_V(&(p_lock->semaphore));
 }

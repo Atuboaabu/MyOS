@@ -42,9 +42,6 @@ void thread_schedule() {
     g_curThreadTag = list_pop(&s_readyThreadList);  // 取出队列的第一个线程跳转执行
     struct PCB_INFO* next_thread_pcb = GET_ENTRYPTR_FROM_LISTTAG(struct PCB_INFO, general_tag, g_curThreadTag);
     next_thread_pcb->status = TASK_RUNNING;
-    put_str("\nschedule next = ");
-    put_int((int)next_thread_pcb);
-    put_char('\n');
     switch_to(cur_thread_pcb, next_thread_pcb);
 }
 
@@ -56,7 +53,7 @@ void thread_block(enum TASK_STATUS status) {
     enum interrupt_status old_status = get_interrupt_status();
     interrupt_disable();
     struct PCB_INFO* cur_thread_pcb = get_curthread_pcb();
-    cur_thread_pcb->status = status;  // 置其状态为stat 
+    cur_thread_pcb->status = status;  // 置其状态为status
     thread_schedule();                // 将当前线程换下处理器
     /* 待当前线程被解除阻塞后才继续运行下面的 set_interrupt_status */
     set_interrupt_status(old_status);
@@ -142,7 +139,7 @@ static void make_kernelmain_to_thread(void) {
     put_str("\ns_mainThreadPCB: ");
     put_int((uint32_t)s_mainThreadPCB);
     put_char('\n');
-    init_thread_pcb(s_mainThreadPCB, "main", 31);
+    init_thread_pcb(s_mainThreadPCB, "main", 2);
     /* main函数是当前线程, 当前线程不在 s_readyThreadList 中,
     * 所以只将其加在 s_allThreadList 中. */
     ASSERT(!elem_find(&s_allThreadList, &s_mainThreadPCB->all_list_tag));
