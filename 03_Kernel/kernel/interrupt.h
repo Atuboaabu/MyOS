@@ -4,7 +4,7 @@
 #include "stdint.h"
 
 /* IDT 相关定义 */
-#define IDT_SIZE (0x21)
+#define IDT_SIZE (0x30)
 #define EFLAGS_IF   (0x00000200)  // EFLAGS寄存器 IF 位
 
 struct gate_desc {

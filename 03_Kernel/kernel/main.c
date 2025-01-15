@@ -5,6 +5,7 @@
 #include "memory.h"
 #include "thread.h"
 #include "console.h"
+#include "keyboard.h"
 
 void thread_A(void *arg);
 void thread_B(void *arg);
@@ -16,12 +17,13 @@ int main(void) {
     memory_init();
     thread_init();
     console_init();
+    keyboard_init();
 
-    thread_create("ThreadA", 2, thread_A, NULL);
-    thread_create("ThreadB", 2, thread_B, NULL);
+    // thread_create("ThreadA", 2, thread_A, NULL);
+    // thread_create("ThreadB", 2, thread_B, NULL);
     interrupt_enable();
     while(1) {
-        console_put_str("Main  ");
+        // console_put_str("Main  ");
     }
     return 0;
 }
