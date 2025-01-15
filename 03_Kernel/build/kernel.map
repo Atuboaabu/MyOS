@@ -131,7 +131,7 @@ LOAD build/keyboard.o
 .plt.sec
  *(.plt.sec)
 
-.text           0x00000000c0001500     0x20af
+.text           0x00000000c0001500     0x20ba
  *(.text.unlikely .text.*_unlikely .text.unlikely.*)
  *(.text.exit .text.exit.*)
  *(.text.startup .text.startup.*)
@@ -215,9 +215,9 @@ LOAD build/keyboard.o
                 0x00000000c00032e3                console_put_str
                 0x00000000c000331a                console_put_char
                 0x00000000c0003359                console_put_int
- .text          0x00000000c0003390      0x21f build/keyboard.o
+ .text          0x00000000c0003390      0x22a build/keyboard.o
                 0x00000000c00033ad                keyboard_interrupt_handle
-                0x00000000c0003574                keyboard_init
+                0x00000000c000357f                keyboard_init
  *(.gnu.warning)
 
 .fini
@@ -226,22 +226,22 @@ LOAD build/keyboard.o
                 [!provide]                        PROVIDE (_etext = .)
                 [!provide]                        PROVIDE (etext = .)
 
-.rodata         0x00000000c00035b0      0x649
+.rodata         0x00000000c00035bc      0x649
  *(.rodata .rodata.* .gnu.linkonce.r.*)
- .rodata        0x00000000c00035b0       0x26 build/main.o
- *fill*         0x00000000c00035d6        0x2 
- .rodata        0x00000000c00035d8       0xf4 build/interrupt.o
- .rodata        0x00000000c00036cc       0x5a build/timer.o
- .rodata        0x00000000c0003726       0x32 build/debug.o
- .rodata        0x00000000c0003758       0x4f build/string.o
- *fill*         0x00000000c00037a7        0x1 
- .rodata        0x00000000c00037a8       0x83 build/bitmap.o
- *fill*         0x00000000c000382b        0x1 
- .rodata        0x00000000c000382c      0x124 build/memory.o
- .rodata        0x00000000c0003950      0x1e6 build/thread.o
- *fill*         0x00000000c0003b36        0x2 
- .rodata        0x00000000c0003b38       0x88 build/semaphore.o
- .rodata        0x00000000c0003bc0       0x39 build/keyboard.o
+ .rodata        0x00000000c00035bc       0x26 build/main.o
+ *fill*         0x00000000c00035e2        0x2 
+ .rodata        0x00000000c00035e4       0xf4 build/interrupt.o
+ .rodata        0x00000000c00036d8       0x5a build/timer.o
+ .rodata        0x00000000c0003732       0x32 build/debug.o
+ .rodata        0x00000000c0003764       0x4f build/string.o
+ *fill*         0x00000000c00037b3        0x1 
+ .rodata        0x00000000c00037b4       0x83 build/bitmap.o
+ *fill*         0x00000000c0003837        0x1 
+ .rodata        0x00000000c0003838      0x124 build/memory.o
+ .rodata        0x00000000c000395c      0x1e6 build/thread.o
+ *fill*         0x00000000c0003b42        0x2 
+ .rodata        0x00000000c0003b44       0x88 build/semaphore.o
+ .rodata        0x00000000c0003bcc       0x39 build/keyboard.o
 
 .rodata1
  *(.rodata1)
@@ -250,32 +250,32 @@ LOAD build/keyboard.o
  *(.eh_frame_hdr)
  *(.eh_frame_entry .eh_frame_entry.*)
 
-.eh_frame       0x00000000c0003bfc      0x8a8
+.eh_frame       0x00000000c0003c08      0x8a8
  *(.eh_frame)
- .eh_frame      0x00000000c0003bfc       0x74 build/main.o
- .eh_frame      0x00000000c0003c70      0x184 build/interrupt.o
+ .eh_frame      0x00000000c0003c08       0x74 build/main.o
+ .eh_frame      0x00000000c0003c7c      0x184 build/interrupt.o
                                         0x19c (size before relaxing)
- .eh_frame      0x00000000c0003df4       0x8c build/timer.o
+ .eh_frame      0x00000000c0003e00       0x8c build/timer.o
                                          0xa4 (size before relaxing)
- .eh_frame      0x00000000c0003e80       0x1c build/debug.o
+ .eh_frame      0x00000000c0003e8c       0x1c build/debug.o
                                          0x34 (size before relaxing)
- .eh_frame      0x00000000c0003e9c       0x40 build/string.o
+ .eh_frame      0x00000000c0003ea8       0x40 build/string.o
                                          0x58 (size before relaxing)
- .eh_frame      0x00000000c0003edc       0x88 build/bitmap.o
+ .eh_frame      0x00000000c0003ee8       0x88 build/bitmap.o
                                          0xa0 (size before relaxing)
- .eh_frame      0x00000000c0003f64      0x120 build/memory.o
+ .eh_frame      0x00000000c0003f70      0x120 build/memory.o
                                         0x138 (size before relaxing)
- .eh_frame      0x00000000c0004084      0x140 build/list.o
+ .eh_frame      0x00000000c0004090      0x140 build/list.o
                                         0x158 (size before relaxing)
- .eh_frame      0x00000000c00041c4      0x140 build/thread.o
+ .eh_frame      0x00000000c00041d0      0x140 build/thread.o
                                         0x158 (size before relaxing)
- .eh_frame      0x00000000c0004304       0x60 build/semaphore.o
+ .eh_frame      0x00000000c0004310       0x60 build/semaphore.o
                                          0x78 (size before relaxing)
- .eh_frame      0x00000000c0004364       0x60 build/lock.o
+ .eh_frame      0x00000000c0004370       0x60 build/lock.o
                                          0x78 (size before relaxing)
- .eh_frame      0x00000000c00043c4       0x80 build/console.o
+ .eh_frame      0x00000000c00043d0       0x80 build/console.o
                                          0x98 (size before relaxing)
- .eh_frame      0x00000000c0004444       0x60 build/keyboard.o
+ .eh_frame      0x00000000c0004450       0x60 build/keyboard.o
                                          0x78 (size before relaxing)
  *(.eh_frame.*)
 

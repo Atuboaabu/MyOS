@@ -27,9 +27,9 @@
 #define ALT_L_MAKECODE     (0x38)
 #define ALT_R_MAKECODE     (0xE038)
 #define ALT_R_BREAKCODE    (0xE0B8)
-#define CTRL_L_MAKECODE    (0x2A)
+#define CTRL_L_MAKECODE    (0x1D)
 #define CTRL_R_MAKECODE    (0xE01D)
-#define CTRL_R_BREAKCODE   (0xE01D)
+#define CTRL_R_BREAKCODE   (0xE09D)
 #define CAPS_LOCK_MAKECODE (0x3A)
 
 static char s_keymap[][2] = {
@@ -155,14 +155,15 @@ void keyboard_interrupt_handle() {
 
         /* shift 组合按键 */
         uint32_t shift = 0;
-        if ((s_SHIFT_Flag && !s_CAPS_LOCK_Flag) ||
-            (!s_SHIFT_Flag && s_CAPS_LOCK_Flag)) {  // shift、caps_lock只有1个按下
+        if (((s_SHIFT_Flag == true) && (s_CAPS_LOCK_Flag == false)) ||
+            ((s_SHIFT_Flag == false) && (s_CAPS_LOCK_Flag == true))) {  // shift、caps_lock只有1个按下
             shift = 1;
         }
 
         char key_char = s_keymap[scancode][shift];
-        console_put_char(key_char);
-        
+        if (key_char != INVISIBLE_CHAR) {
+            console_put_char(key_char);
+        }
     } else {
         console_put_str("unknown key!\n");
     }
