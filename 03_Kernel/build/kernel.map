@@ -128,7 +128,7 @@ LOAD build/console.o
 .plt.sec
  *(.plt.sec)
 
-.text           0x00000000c0001500     0x1d21
+.text           0x00000000c0001500     0x1d20
  *(.text.unlikely .text.*_unlikely .text.unlikely.*)
  *(.text.exit .text.exit.*)
  *(.text.startup .text.startup.*)
@@ -199,19 +199,19 @@ LOAD build/console.o
                 0x00000000c0002c5c                thread_unblock
                 0x00000000c0002e1e                thread_create
                 0x00000000c0002f3a                thread_init
- .text          0x00000000c0002f88      0x16d build/semaphore.o
+ .text          0x00000000c0002f88      0x16c build/semaphore.o
                 0x00000000c0002f88                semaphore_init
                 0x00000000c0002fab                semaphore_P
-                0x00000000c0003065                semaphore_V
- .text          0x00000000c00030f5       0x66 build/lock.o
-                0x00000000c00030f5                lock_init
-                0x00000000c0003125                lock_acquire
-                0x00000000c0003140                lock_release
- .text          0x00000000c000315b       0xc6 build/console.o
-                0x00000000c000315b                console_init
-                0x00000000c0003174                console_put_str
-                0x00000000c00031ab                console_put_char
-                0x00000000c00031ea                console_put_int
+                0x00000000c0003064                semaphore_V
+ .text          0x00000000c00030f4       0x66 build/lock.o
+                0x00000000c00030f4                lock_init
+                0x00000000c0003124                lock_acquire
+                0x00000000c000313f                lock_release
+ .text          0x00000000c000315a       0xc6 build/console.o
+                0x00000000c000315a                console_init
+                0x00000000c0003173                console_put_str
+                0x00000000c00031aa                console_put_char
+                0x00000000c00031e9                console_put_int
  *(.gnu.warning)
 
 .fini
@@ -220,21 +220,21 @@ LOAD build/console.o
                 [!provide]                        PROVIDE (_etext = .)
                 [!provide]                        PROVIDE (etext = .)
 
-.rodata         0x00000000c0003224      0x628
+.rodata         0x00000000c0003220      0x628
  *(.rodata .rodata.* .gnu.linkonce.r.*)
- .rodata        0x00000000c0003224       0x3d build/main.o
- *fill*         0x00000000c0003261        0x3 
- .rodata        0x00000000c0003264       0xf4 build/interrupt.o
- .rodata        0x00000000c0003358       0x5a build/timer.o
- .rodata        0x00000000c00033b2       0x32 build/debug.o
- .rodata        0x00000000c00033e4       0x4f build/string.o
- *fill*         0x00000000c0003433        0x1 
- .rodata        0x00000000c0003434       0x83 build/bitmap.o
- *fill*         0x00000000c00034b7        0x1 
- .rodata        0x00000000c00034b8      0x124 build/memory.o
- .rodata        0x00000000c00035dc      0x1e6 build/thread.o
- *fill*         0x00000000c00037c2        0x2 
- .rodata        0x00000000c00037c4       0x88 build/semaphore.o
+ .rodata        0x00000000c0003220       0x3d build/main.o
+ *fill*         0x00000000c000325d        0x3 
+ .rodata        0x00000000c0003260       0xf4 build/interrupt.o
+ .rodata        0x00000000c0003354       0x5a build/timer.o
+ .rodata        0x00000000c00033ae       0x32 build/debug.o
+ .rodata        0x00000000c00033e0       0x4f build/string.o
+ *fill*         0x00000000c000342f        0x1 
+ .rodata        0x00000000c0003430       0x83 build/bitmap.o
+ *fill*         0x00000000c00034b3        0x1 
+ .rodata        0x00000000c00034b4      0x124 build/memory.o
+ .rodata        0x00000000c00035d8      0x1e6 build/thread.o
+ *fill*         0x00000000c00037be        0x2 
+ .rodata        0x00000000c00037c0       0x88 build/semaphore.o
 
 .rodata1
  *(.rodata1)
@@ -243,30 +243,30 @@ LOAD build/console.o
  *(.eh_frame_hdr)
  *(.eh_frame_entry .eh_frame_entry.*)
 
-.eh_frame       0x00000000c000384c      0x848
+.eh_frame       0x00000000c0003848      0x848
  *(.eh_frame)
- .eh_frame      0x00000000c000384c       0x74 build/main.o
- .eh_frame      0x00000000c00038c0      0x184 build/interrupt.o
+ .eh_frame      0x00000000c0003848       0x74 build/main.o
+ .eh_frame      0x00000000c00038bc      0x184 build/interrupt.o
                                         0x19c (size before relaxing)
- .eh_frame      0x00000000c0003a44       0x8c build/timer.o
+ .eh_frame      0x00000000c0003a40       0x8c build/timer.o
                                          0xa4 (size before relaxing)
- .eh_frame      0x00000000c0003ad0       0x1c build/debug.o
+ .eh_frame      0x00000000c0003acc       0x1c build/debug.o
                                          0x34 (size before relaxing)
- .eh_frame      0x00000000c0003aec       0x40 build/string.o
+ .eh_frame      0x00000000c0003ae8       0x40 build/string.o
                                          0x58 (size before relaxing)
- .eh_frame      0x00000000c0003b2c       0x88 build/bitmap.o
+ .eh_frame      0x00000000c0003b28       0x88 build/bitmap.o
                                          0xa0 (size before relaxing)
- .eh_frame      0x00000000c0003bb4      0x120 build/memory.o
+ .eh_frame      0x00000000c0003bb0      0x120 build/memory.o
                                         0x138 (size before relaxing)
- .eh_frame      0x00000000c0003cd4      0x140 build/list.o
+ .eh_frame      0x00000000c0003cd0      0x140 build/list.o
                                         0x158 (size before relaxing)
- .eh_frame      0x00000000c0003e14      0x140 build/thread.o
+ .eh_frame      0x00000000c0003e10      0x140 build/thread.o
                                         0x158 (size before relaxing)
- .eh_frame      0x00000000c0003f54       0x60 build/semaphore.o
+ .eh_frame      0x00000000c0003f50       0x60 build/semaphore.o
                                          0x78 (size before relaxing)
- .eh_frame      0x00000000c0003fb4       0x60 build/lock.o
+ .eh_frame      0x00000000c0003fb0       0x60 build/lock.o
                                          0x78 (size before relaxing)
- .eh_frame      0x00000000c0004014       0x80 build/console.o
+ .eh_frame      0x00000000c0004010       0x80 build/console.o
                                          0x98 (size before relaxing)
  *(.eh_frame.*)
 
