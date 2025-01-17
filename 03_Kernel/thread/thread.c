@@ -38,6 +38,9 @@ void thread_schedule() {
         不需要将其加入队列, 因为当前线程不在就绪队列中。*/
     }
     ASSERT(!list_empty(&s_readyThreadList));
+    // put_str("schedual ");
+    // put_int((uint32_t)cur_thread_pcb);
+    // put_char('\n');
     g_curThreadTag = NULL;	  // thread_tag清空
     g_curThreadTag = list_pop(&s_readyThreadList);  // 取出队列的第一个线程跳转执行
     struct PCB_INFO* next_thread_pcb = GET_ENTRYPTR_FROM_LISTTAG(struct PCB_INFO, general_tag, g_curThreadTag);
@@ -139,7 +142,7 @@ static void make_kernelmain_to_thread(void) {
     put_str("\ns_mainThreadPCB: ");
     put_int((uint32_t)s_mainThreadPCB);
     put_char('\n');
-    init_thread_pcb(s_mainThreadPCB, "main", 2);
+    init_thread_pcb(s_mainThreadPCB, "main", 20);
     /* main函数是当前线程, 当前线程不在 s_readyThreadList 中,
     * 所以只将其加在 s_allThreadList 中. */
     ASSERT(!elem_find(&s_allThreadList, &s_mainThreadPCB->all_list_tag));

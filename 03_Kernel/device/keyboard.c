@@ -3,6 +3,7 @@
 #include "interrupt.h"
 #include "console.h"
 #include "io.h"
+#include "ioqueue.h"
 
 /* 使用转义字符定义特殊字符定义 */
 #define ESC       ('\x1b')
@@ -108,6 +109,8 @@ static bool s_ALT_Flag = false;
 /* CAPS_LOCK是否按下标记 */
 static bool s_CAPS_LOCK_Flag = false;
 
+/* 环形队列 */
+struct ioqueue g_keyboardIOQueue;
 
 void keyboard_interrupt_handle() {
     bool isBreakCode = false;
@@ -155,14 +158,21 @@ void keyboard_interrupt_handle() {
 
         /* shift 组合按键 */
         uint32_t shift = 0;
-        if (((s_SHIFT_Flag == true) && (s_CAPS_LOCK_Flag == false)) ||
-            ((s_SHIFT_Flag == false) && (s_CAPS_LOCK_Flag == true))) {  // shift、caps_lock只有1个按下
+        // 如果是 a~z 的字符，需要用 shift 和 caps lock 共同控制大小写
+        if ((scancode >= 0x10 && scancode <= 0x19) ||
+            (scancode >= 0x1E && scancode <= 0x26) ||
+            (scancode >= 0x2C && scancode <= 0x32)) {
+            // shift、caps_lock 有且只有1个按下
+            if ((s_SHIFT_Flag && !s_CAPS_LOCK_Flag) || (!s_SHIFT_Flag && s_CAPS_LOCK_Flag)) {
+                shift = 1;
+            }
+        } else if (s_SHIFT_Flag) {  // 其余字符不看 caps lock状态，只看shift是否按下
             shift = 1;
         }
 
         char key_char = s_keymap[scancode][shift];
         if (key_char != INVISIBLE_CHAR) {
-            console_put_char(key_char);
+            ioqueue_putchar(&g_keyboardIOQueue, key_char);
         }
     } else {
         console_put_str("unknown key!\n");
@@ -171,6 +181,7 @@ void keyboard_interrupt_handle() {
 
 void keyboard_init() {
     console_put_str("keyboard init start!\n");
+    ioqueue_init(&g_keyboardIOQueue);
     register_interrupt_handle(KEYBOARD_INTR_NUM, keyboard_interrupt_handle);
     console_put_str("keyboard init done!\n");
 }

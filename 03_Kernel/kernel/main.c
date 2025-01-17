@@ -7,8 +7,8 @@
 #include "console.h"
 #include "keyboard.h"
 
+extern struct ioqueue g_keyboardIOQueue;
 void thread_A(void *arg);
-void thread_B(void *arg);
 
 int main(void) {
     put_str("\nkernel start!\n");
@@ -19,8 +19,7 @@ int main(void) {
     console_init();
     keyboard_init();
 
-    // thread_create("ThreadA", 2, thread_A, NULL);
-    // thread_create("ThreadB", 2, thread_B, NULL);
+    thread_create("ThreadA", 20, thread_A, NULL);
     interrupt_enable();
     while(1) {
         // console_put_str("Main  ");
@@ -30,12 +29,7 @@ int main(void) {
 
 void thread_A(void *arg) {
     while(1) {
-        console_put_str("Thread A  ");
-    }
-}
-
-void thread_B(void *arg) {
-    while(1) {
-        console_put_str("Thread B  ");
+        char c = ioqueue_getchar(&g_keyboardIOQueue);
+        console_put_char(c);
     }
 }

@@ -23,19 +23,17 @@ void semaphore_P(struct semaphore *p_sema) {
     }
     // 线程唤醒后在这，此时的信号值为1，需要在此处减1
     p_sema->value--;
-    ASSERT(p_sema->value == 0);
     set_interrupt_status(old_status);
 }
 
 void semaphore_V(struct semaphore *p_sema) {
     enum interrupt_status old_status = get_interrupt_status();
     interrupt_disable();
-    p_sema->value++;
     if (!list_empty(&(p_sema->waiters_list))) {
         struct PCB_INFO* blocked_thread_pcb =
             GET_ENTRYPTR_FROM_LISTTAG(struct PCB_INFO, general_tag, list_pop(&(p_sema->waiters_list)));
         thread_unblock(blocked_thread_pcb);
     }
-    ASSERT(p_sema->value == 1);
+    p_sema->value++;
     set_interrupt_status(old_status);
 }
