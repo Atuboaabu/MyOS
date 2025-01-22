@@ -6,6 +6,7 @@
 #include "thread.h"
 #include "console.h"
 #include "keyboard.h"
+#include "tss.h"
 
 extern struct ioqueue g_keyboardIOQueue;
 void thread_A(void *arg);
@@ -18,6 +19,7 @@ int main(void) {
     thread_init();
     console_init();
     keyboard_init();
+    tss_init();
 
     thread_create("ThreadA", 20, thread_A, NULL);
     interrupt_enable();
