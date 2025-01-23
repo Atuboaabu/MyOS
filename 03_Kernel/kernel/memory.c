@@ -4,6 +4,7 @@
 #include "print.h"
 #include "string.h"
 #include "debug.h"
+#include "thread.h"
 
 struct memory_poll kernel_memory_pool;
 struct memory_poll user_memory_pool;
@@ -27,8 +28,20 @@ static void* vaddr_get(enum pool_flag pf, uint32_t cnt) {
         }
         /* 3、计算申请到的虚拟地址用于返回 */
         vaddr_start = kernel_virtual_addr.addr_start + bit_start * PAGE_SIZE;
-    } else {	
-        // 用户内存池,将来实现用户进程再补充
+    } else {
+        struct PCB_INFO* cur_thread_pcb = get_curthread_pcb();
+        /* 1、bitmap申请，查看是否有有连续cnt个空闲的虚拟地址 */
+        bit_start = bitmap_apply(&(cur_thread_pcb->user_virtual_addr.pool_bitmap), cnt);
+        if (bit_start == -1) {
+            return NULL;
+        }
+        /* 2、置位bitmap */
+        while(bitcnt < cnt) {
+            bitmap_set(&(cur_thread_pcb->user_virtual_addr.pool_bitmap), bit_start + bitcnt, 1);
+            bitcnt++;
+        }
+        /* 3、计算申请到的虚拟地址用于返回 */
+        vaddr_start = cur_thread_pcb->user_virtual_addr.addr_start + bit_start * PAGE_SIZE;
     }
     return (void*)vaddr_start;
 }
@@ -107,7 +120,7 @@ void* malloc_page(enum pool_flag pf, uint32_t cnt) {
 
    uint32_t virtual_addr = (uint32_t)vaddr_start;
    uint32_t page_cnt = cnt;
-   struct pool* mem_pool = (pf == POOL_FLAG_KERNEL) ? &kernel_memory_pool : &user_memory_pool;
+   struct memory_poll* mem_pool = (pf == POOL_FLAG_KERNEL) ? &kernel_memory_pool : &user_memory_pool;
 
     /* 2、申请物理地址并完成虚拟地址和物理地址在页表中的映射 */
     while (page_cnt-- > 0) {
@@ -123,11 +136,62 @@ void* malloc_page(enum pool_flag pf, uint32_t cnt) {
 
 /* 从内核申请 cnt 个内存页：成功则返回其虚拟地址，失败返回NULL */
 void* get_kernel_pages(uint32_t cnt) {
-   void* vaddr =  malloc_page(POOL_FLAG_KERNEL, cnt);
-   if (vaddr != NULL) {
-      memset(vaddr, 0, cnt * PAGE_SIZE);
-   }
-   return vaddr;
+    lock_acquire(&(kernel_memory_pool.lock));
+    void* vaddr =  malloc_page(POOL_FLAG_KERNEL, cnt);
+    if (vaddr != NULL) {
+        memset(vaddr, 0, cnt * PAGE_SIZE);
+    }
+    lock_release(&(kernel_memory_pool.lock));
+    return vaddr;
+}
+
+/* 从用户内存申请 cnt 个内存页：成功则返回其虚拟地址，失败返回NULL */
+void* get_user_pages(uint32_t cnt) {
+    lock_acquire(&(user_memory_pool.lock));
+    void* vaddr =  malloc_page(POOL_FLAG_USER, cnt);
+    if (vaddr != NULL) {
+        memset(vaddr, 0, cnt * PAGE_SIZE);
+    }
+    lock_release(&(user_memory_pool.lock));
+    return vaddr;
+}
+
+/* 将地址 vaddr 与 pf 池中的物理地址关联, 仅支持一页空间分配 */
+void* bind_vaddr_with_mempool(enum pool_flag pf, uint32_t vaddr) {
+    struct memory_poll* mem_pool = ((pf == POOL_FLAG_KERNEL) ? &kernel_memory_pool : &user_memory_pool);
+    lock_acquire(&(mem_pool->lock));
+
+    /* 1、将虚拟地址对应的位图置1 */
+    struct PCB_INFO* cur_thread_pcb = get_curthread_pcb();
+    uint32_t bit_idx = -1;
+
+    /* 若当前是用户进程申请用户内存,就修改用户进程自己的虚拟地址位图 */
+    if (cur_thread_pcb->pgdir != NULL && pf == POOL_FLAG_USER) {
+        bit_idx = (vaddr - cur_thread_pcb->user_virtual_addr.addr_start) / PAGE_SIZE;
+        ASSERT(bit_idx > 0);
+        bitmap_set(&(cur_thread_pcb->user_virtual_addr.pool_bitmap), bit_idx, 1);
+    } else if (cur_thread_pcb->pgdir == NULL && pf == POOL_FLAG_KERNEL){
+    /* 如果是内核线程申请内核内存,就修改kernel_vaddr. */
+        bit_idx = (vaddr - kernel_virtual_addr.addr_start) / PAGE_SIZE;
+        ASSERT(bit_idx > 0);
+        bitmap_set(&(kernel_virtual_addr.pool_bitmap), bit_idx, 1);
+    } else {
+        put_str("get_a_page: Wrong operation!\n");
+    }
+
+    void* page_phyaddr = palloc(mem_pool);
+    if (page_phyaddr == NULL) {
+        return NULL;
+    }
+    page_table_add((void*)vaddr, page_phyaddr);
+    lock_release(&(mem_pool->lock));
+    return (void*)vaddr;
+}
+
+/* 获取虚拟地址映射到的物理地址 */
+uint32_t vaddr_to_phyaddr(uint32_t vaddr) {
+    uint32_t* pte = get_pte_ptr(vaddr);
+    return ((*pte & 0xFFFFF000) + (vaddr & 0x00000FFF));
 }
 
 void memory_pool_init(uint32_t all_memory_bytes)
@@ -145,6 +209,7 @@ void memory_pool_init(uint32_t all_memory_bytes)
     kernel_memory_pool.pool_bitmap.bits = MEMORY_BITMAP_ADDR;
     kernel_memory_pool.pool_bitmap.bytes_num = kernel_pages / 8;
     bitmap_init(&(kernel_memory_pool.pool_bitmap));
+    lock_init(&(kernel_memory_pool.lock));
     put_str("\nkernel pool init: ");
     put_str("\nphy addr: ");
     put_int(kernel_memory_pool.addr_start);
@@ -161,6 +226,7 @@ void memory_pool_init(uint32_t all_memory_bytes)
     user_memory_pool.pool_bitmap.bits = kernel_memory_pool.pool_bitmap.bits + kernel_memory_pool.pool_bitmap.bytes_num;
     user_memory_pool.pool_bitmap.bytes_num = user_pages / 8;
     bitmap_init(&(user_memory_pool.pool_bitmap));
+    lock_init(&(user_memory_pool.lock));
     put_str("\nuser pool init: ");
     put_str("\nphy addr: ");
     put_int(user_memory_pool.addr_start);

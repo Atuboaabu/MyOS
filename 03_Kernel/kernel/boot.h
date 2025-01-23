@@ -3,6 +3,32 @@
 
 #include "stdint.h"
 
+/* eflags寄存器 */
+struct EFLAGS {
+    uint32_t CF : 1;    // 进位标记
+    uint32_t MBS : 1;   // 保留位，始终位1
+    uint32_t PF : 1;    // 奇偶标记
+    uint32_t Rev1 : 1;
+    uint32_t AF : 1;    // 辅助进位标记
+    uint32_t Rev2 : 1;
+    uint32_t ZF : 1;    // 零标记
+    uint32_t SF : 1;    // 符号标记
+    uint32_t TF : 1;    // 陷阱标记
+    uint32_t IF : 1;    // 中断标记
+    uint32_t DF : 1;    // 方向标记
+    uint32_t OF : 1;    // 溢出标记
+    uint32_t IOPL : 2;  // 特权级别
+    uint32_t NT : 1;    // 嵌套任务标记
+    uint32_t Rev3 : 1;
+    uint32_t RF : 1;    // 恢复标记
+    uint32_t VM : 1;    // 虚拟8086模式
+    uint32_t AC : 1;    // 对齐检查
+    uint32_t VIF : 1;   // 虚拟中断标记
+    uint32_t VIP : 1;   // 虚拟中断挂起
+    uint32_t ID : 1;    // ID标记
+    uint32_t Rev4 : 10;
+};
+
 /* GDT结构定义 */
 struct GDT_DESC {
     uint16_t limit_0_15;      // 段界限 0~15 位
@@ -29,10 +55,12 @@ struct GDT_DESC {
 #define SL_TI_GDT (0)
 #define SL_TI_LDT (1)
 
-#define SL_CODE  ((0x0001 << 3) + SL_TI_GDT + SL_RPL0)  // 代码段选择子
-#define SL_DATA  ((0x0002 << 3) + SL_TI_GDT + SL_RPL0)  //数据段选择子
-#define SL_VIDEO ((0x0003 << 3) + SL_TI_GDT + SL_RPL0)  //显存段选择子
-#define SL_TSS   ((0x0004 << 3) + SL_TI_GDT + SL_RPL0)  //显存段选择子
+#define SL_CODE  ((0x0001 << 3) + SL_TI_GDT + SL_RPL0)      // 代码段选择子
+#define SL_DATA  ((0x0002 << 3) + SL_TI_GDT + SL_RPL0)      //数据段选择子
+#define SL_VIDEO ((0x0003 << 3) + SL_TI_GDT + SL_RPL0)      //显存段选择子
+#define SL_TSS   ((0x0004 << 3) + SL_TI_GDT + SL_RPL0)      //显存段选择子
+#define SL_USRCODE   ((0x0005 << 3) + SL_TI_GDT + SL_RPL0)  //用户代码段选择子
+#define SL_USRDATA   ((0x0006 << 3) + SL_TI_GDT + SL_RPL0)  //用户数据段选择子
 
 /* IDT 描述符部分宏定义 */
 #define IDT_DESC_P1        (1 << 7)

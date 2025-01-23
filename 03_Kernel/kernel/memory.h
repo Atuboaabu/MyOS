@@ -3,6 +3,7 @@
 
 #include "stdint.h"
 #include "bitmap.h"
+#include "lock.h"
 
 #define PAGE_SIZE           (4096)
 #define MEMORY_BITMAP_ADDR  (0xC009A000)
@@ -29,6 +30,7 @@ struct memory_poll {
     uint32_t addr_start;        // 物理地址起始位置
     uint32_t size;              // 内存池大小（byte)
     struct bitmap pool_bitmap;  // 内存池对应的位图，用于管理物理内存
+    struct lock lock;                // 内存池互斥锁
 };
 
 struct virtual_addr_pool {
@@ -38,5 +40,8 @@ struct virtual_addr_pool {
 
 void memory_init();
 void* get_kernel_pages(uint32_t cnt);
+void* get_user_pages(uint32_t cnt);
+void* bind_vaddr_with_mempool(enum pool_flag pf, uint32_t vaddr);
+uint32_t vaddr_to_phyaddr(uint32_t vaddr);
 
 #endif
