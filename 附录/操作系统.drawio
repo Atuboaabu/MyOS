@@ -1,4 +1,4 @@
-<mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/25.0.2 Chrome/128.0.6613.186 Electron/32.2.5 Safari/537.36" version="25.0.2" pages="5">
+<mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/25.0.2 Chrome/128.0.6613.186 Electron/32.2.5 Safari/537.36" version="25.0.2" pages="6">
   <diagram id="QYgVMOH783teOYJ31w05" name="寄存器">
     <mxGraphModel dx="1104" dy="650" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
@@ -2119,6 +2119,89 @@
         </mxCell>
         <mxCell id="YQXs2_tdpLPkWVDDWkN8-46" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;shape=flexArrow;dashed=1;fillColor=#fa6800;strokeColor=#C73500;" parent="1" source="YQXs2_tdpLPkWVDDWkN8-42" target="yfTHVXIQ8e-rQ1kKYfO3-102" edge="1">
           <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="Lbaw_PdQsxuogt6PiY9o" name="PCB栈结构">
+    <mxGraphModel dx="1673" dy="1010" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="kOJg4qsyw_cWJBkvur5h-62" value="" style="group" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="10" y="50" width="830" height="1230" as="geometry" />
+        </mxCell>
+        <mxCell id="kOJg4qsyw_cWJBkvur5h-56" value="" style="group" vertex="1" connectable="0" parent="kOJg4qsyw_cWJBkvur5h-62">
+          <mxGeometry width="760" height="1230" as="geometry" />
+        </mxCell>
+        <mxCell id="kOJg4qsyw_cWJBkvur5h-53" value="&lt;b&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;PCB&lt;/font&gt;&lt;/b&gt;&lt;div&gt;&lt;b&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;4KB&lt;/font&gt;&lt;/b&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="kOJg4qsyw_cWJBkvur5h-56">
+          <mxGeometry y="618.75" width="40" height="37.5" as="geometry" />
+        </mxCell>
+        <mxCell id="kOJg4qsyw_cWJBkvur5h-69" value="" style="group" vertex="1" connectable="0" parent="kOJg4qsyw_cWJBkvur5h-56">
+          <mxGeometry x="40" width="800" height="1230" as="geometry" />
+        </mxCell>
+        <mxCell id="kOJg4qsyw_cWJBkvur5h-42" value="" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="kOJg4qsyw_cWJBkvur5h-69">
+          <mxGeometry x="170" y="40" width="550" height="1190" as="geometry" />
+        </mxCell>
+        <mxCell id="kOJg4qsyw_cWJBkvur5h-67" value="" style="group" vertex="1" connectable="0" parent="kOJg4qsyw_cWJBkvur5h-69">
+          <mxGeometry x="170" y="960" width="550" height="270" as="geometry" />
+        </mxCell>
+        <mxCell id="kOJg4qsyw_cWJBkvur5h-63" value="&lt;div&gt;/* 进程、线程的PCB：程序控制块 */&lt;/div&gt;&lt;div&gt;struct PCB_INFO {&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &lt;b&gt;uint32_t* self_kstack;&amp;nbsp; &lt;/b&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; // 各内核线程都用自己的内核栈&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; enum TASK_STATUS status;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; char name[16];&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; uint8_t priority;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; uint8_t ticks;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; // 每次在处理器上执行的时间嘀嗒数&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; uint32_t elapsed_ticks;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;// 此任务自上cpu运行后至今占用了多少cpu嘀嗒数&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; struct list_elem general_tag;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;// 线程在一般的队列中的结点&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; struct list_elem all_list_tag;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; // 线程队列thread_all_list中的结点&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; uint32_t* pgdir;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; // 进程自己页表的虚拟地址&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; struct virtual_addr_pool user_virtual_addr;&amp;nbsp; // 用户进程的虚拟地址&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; uint32_t stack_magic;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;// 用这串数字做栈的边界标记,用于检测栈的溢出&lt;/div&gt;&lt;div&gt;};&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;align=left;" vertex="1" parent="kOJg4qsyw_cWJBkvur5h-67">
+          <mxGeometry width="550" height="270" as="geometry" />
+        </mxCell>
+        <mxCell id="kOJg4qsyw_cWJBkvur5h-66" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;" vertex="1" parent="kOJg4qsyw_cWJBkvur5h-67">
+          <mxGeometry x="11" y="49" width="360" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="kOJg4qsyw_cWJBkvur5h-43" value="&lt;div&gt;/* 中断栈内容 */&lt;/div&gt;&lt;div&gt;struct INTR_STACK {&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; uint32_t vec_no;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; // 中断号&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; uint32_t edi;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; uint32_t esi;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; uint32_t ebp;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; uint32_t esp_dummy;&amp;nbsp; &amp;nbsp; // 虽然pushad把esp也压入,但esp是不断变化的,所以会被popad忽略&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; uint32_t ebx;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; uint32_t edx;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; uint32_t ecx;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; uint32_t eax;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; uint32_t gs;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; uint32_t fs;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; uint32_t es;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; uint32_t ds;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; /* 以下由cpu从低特权级进入高特权级时压入 */&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; uint32_t err_code;&amp;nbsp; &amp;nbsp; // err_code会被压入在eip之后&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; void (*eip) (void);&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; uint32_t cs;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; uint32_t eflags;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; void* esp;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; uint32_t ss;&lt;/div&gt;&lt;div&gt;};&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;" vertex="1" parent="kOJg4qsyw_cWJBkvur5h-69">
+          <mxGeometry x="170" y="40" width="550" height="390" as="geometry" />
+        </mxCell>
+        <mxCell id="kOJg4qsyw_cWJBkvur5h-44" value="&lt;div&gt;/* 线程栈内容 */&lt;/div&gt;&lt;div&gt;struct THREAD_STACK {&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; uint32_t ebp;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; uint32_t ebx;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; uint32_t edi;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; uint32_t esi;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; /* 线程第一次执行时,eip指向待调用的函数kernel_thread&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; ** 其它时候,eip是指向switch_to的返回地址*/&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; void (*eip) (thread_func* func, void* func_arg);&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; /*&amp;nbsp; &amp;nbsp; 以下仅供第一次被调度上cpu时使用&amp;nbsp; &amp;nbsp; &amp;nbsp;*/&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; /* 参数unused_ret只为占位置充数为返回地址 */&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; void (*unused_retaddr);&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; thread_func* function;&amp;nbsp; &amp;nbsp;// 由Kernel_thread所调用的函数名&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; void* func_arg;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; // 由Kernel_thread所调用的函数所需的参数&lt;/div&gt;&lt;div&gt;};&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;" vertex="1" parent="kOJg4qsyw_cWJBkvur5h-69">
+          <mxGeometry x="170" y="430" width="550" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="kOJg4qsyw_cWJBkvur5h-46" value="" style="shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;labelPosition=left;verticalLabelPosition=middle;align=right;verticalAlign=middle;" vertex="1" parent="kOJg4qsyw_cWJBkvur5h-69">
+          <mxGeometry x="140" y="40" width="20" height="390" as="geometry" />
+        </mxCell>
+        <mxCell id="kOJg4qsyw_cWJBkvur5h-48" value="" style="shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;labelPosition=left;verticalLabelPosition=middle;align=right;verticalAlign=middle;" vertex="1" parent="kOJg4qsyw_cWJBkvur5h-69">
+          <mxGeometry x="140" y="435" width="20" height="270" as="geometry" />
+        </mxCell>
+        <mxCell id="kOJg4qsyw_cWJBkvur5h-49" value="&lt;b&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;intr_stack&lt;/font&gt;&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="kOJg4qsyw_cWJBkvur5h-69">
+          <mxGeometry x="50" y="220" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="kOJg4qsyw_cWJBkvur5h-50" value="&lt;b&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;thread_stack&lt;/font&gt;&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="kOJg4qsyw_cWJBkvur5h-69">
+          <mxGeometry x="30" y="555" width="100" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="kOJg4qsyw_cWJBkvur5h-51" value="" style="shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;labelPosition=left;verticalLabelPosition=middle;align=right;verticalAlign=middle;" vertex="1" parent="kOJg4qsyw_cWJBkvur5h-69">
+          <mxGeometry y="45" width="20" height="1185" as="geometry" />
+        </mxCell>
+        <mxCell id="kOJg4qsyw_cWJBkvur5h-55" value="&lt;b&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;PCB中栈的布局&lt;/font&gt;&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="kOJg4qsyw_cWJBkvur5h-69">
+          <mxGeometry x="387.5" width="115" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="kOJg4qsyw_cWJBkvur5h-65" value="" style="edgeStyle=elbowEdgeStyle;elbow=horizontal;endArrow=classic;html=1;curved=0;rounded=0;endSize=8;startSize=8;entryX=1;entryY=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;dashed=1;fillColor=#f8cecc;strokeColor=#b85450;" edge="1" parent="kOJg4qsyw_cWJBkvur5h-69" source="kOJg4qsyw_cWJBkvur5h-66" target="kOJg4qsyw_cWJBkvur5h-43">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="310" y="1020" as="sourcePoint" />
+            <mxPoint x="360" y="960" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="800" y="540" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="kOJg4qsyw_cWJBkvur5h-58" value="PCB栈顶" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="kOJg4qsyw_cWJBkvur5h-69">
+          <mxGeometry x="660" y="20" width="60" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="kOJg4qsyw_cWJBkvur5h-57" value="" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="kOJg4qsyw_cWJBkvur5h-62">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="780" y="290" as="sourcePoint" />
+            <mxPoint x="780" y="840" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="kOJg4qsyw_cWJBkvur5h-59" value="高地址" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;rotation=0;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="kOJg4qsyw_cWJBkvur5h-62">
+          <mxGeometry x="790" y="290" width="40" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="kOJg4qsyw_cWJBkvur5h-61" value="低地址" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;rotation=0;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="kOJg4qsyw_cWJBkvur5h-62">
+          <mxGeometry x="790" y="790" width="40" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="kOJg4qsyw_cWJBkvur5h-68" value="self_stack" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="kOJg4qsyw_cWJBkvur5h-62">
+          <mxGeometry x="770" y="20" width="60" height="20" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
