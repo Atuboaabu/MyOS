@@ -26,6 +26,36 @@ enum pool_flag {
    POOL_FLAG_USER   = 2     // 用户内存池
 };
 
+/* 页表项结构 PTE */
+struct page_table_entry {
+    uint32_t P : 1;     // 页表存在位：1表示存在
+    uint32_t RW : 1;    // 读写权限：1表示可读可写，0表示只读
+    uint32_t US : 1;    // 页表中页面的用户/特权级访问：1表示用户模式可访问；0表示仅内核模式访问
+    uint32_t PWT : 1;   // 页表写入策略：1表示写直达，0表示写回
+    uint32_t PCD : 1;   // 页表缓存禁用：1表示禁用，0表示启用
+    uint32_t A : 1;     // 是否被使用，由处理器置位
+    uint32_t D : 1;     // 页面是否被写入过
+    uint32_t PS : 1;    // 页面大小：1 表示4MB页；0 表示4KB页
+    uint32_t G : 1;     // 全局页：1表示全局页，不会被TLB刷新
+    uint32_t AVL : 3;   // 有效标记：操作系统使用
+    uint32_t PTN : 20;  // 物理页框号：物理页的其实地址
+};
+
+/* 页表项结构 PDE */
+struct page_directory_entry {
+    uint32_t P : 1;     // 页表存在位
+    uint32_t RW : 1;    // 读写权限：1表示可读可写，0表示只读
+    uint32_t US : 1;    // 页表中页面的用户/特权级访问
+    uint32_t PWT : 1;   // 页表写入策略
+    uint32_t PCD : 1;   // 页表缓存禁用
+    uint32_t A : 1;     // 是否被使用，由处理器置位
+    uint32_t Rev : 1;   // 保留位，必须为0
+    uint32_t PS : 1;    // 页面大小：1 表示4MB页；0 表示4KB页
+    uint32_t G : 1;     // 全局页
+    uint32_t AVL : 3;   // 有效标记：操作系统使用
+    uint32_t PTN : 20;  // 物理页框号：物理页的其实地址
+};
+
 struct memory_poll {
     uint32_t addr_start;        // 物理地址起始位置
     uint32_t size;              // 内存池大小（byte)

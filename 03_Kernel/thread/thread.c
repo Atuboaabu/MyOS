@@ -3,14 +3,15 @@
 #include "memory.h"
 #include "interrupt.h"
 #include "debug.h"
+#include "process.h"
 
 #define PG_SIZE (4096)
 /* 主线程PCB */
 static struct PCB_INFO* s_mainThreadPCB;
 /* 就绪线程队列 */
-static struct list s_readyThreadList;
+struct list g_readyThreadList;
 /* 所有线程队列 */
-static struct list s_allThreadList;
+struct list g_allThreadList;
 /* 线程结点 */
 struct list_elem* g_curThreadTag;
 /* 跳转执行函数：由汇编语言实现 */
@@ -29,22 +30,23 @@ void thread_schedule() {
     ASSERT(get_interrupt_status() == INTERRUPT_DISABLE);
     struct PCB_INFO* cur_thread_pcb = get_curthread_pcb(); 
     if (cur_thread_pcb->status == TASK_RUNNING) { // 若此线程只是cpu时间片到了,将其加入到就绪队列尾
-        // ASSERT(!elem_find(&s_readyThreadList, &cur_thread_pcb->general_tag));
-        list_append(&s_readyThreadList, &cur_thread_pcb->general_tag);
+        // ASSERT(!elem_find(&g_readyThreadList, &cur_thread_pcb->general_tag));
+        list_append(&g_readyThreadList, &cur_thread_pcb->general_tag);
         cur_thread_pcb->ticks = cur_thread_pcb->priority;   // 重置 ticks 为其 priority
         cur_thread_pcb->status = TASK_READY;
     } else { 
         /* 若此线程需要某事件发生后才能继续上cpu运行,
         不需要将其加入队列, 因为当前线程不在就绪队列中。*/
     }
-    ASSERT(!list_empty(&s_readyThreadList));
+    ASSERT(!list_empty(&g_readyThreadList));
     // put_str("schedual ");
     // put_int((uint32_t)cur_thread_pcb);
     // put_char('\n');
     g_curThreadTag = NULL;	  // thread_tag清空
-    g_curThreadTag = list_pop(&s_readyThreadList);  // 取出队列的第一个线程跳转执行
+    g_curThreadTag = list_pop(&g_readyThreadList);  // 取出队列的第一个线程跳转执行
     struct PCB_INFO* next_thread_pcb = GET_ENTRYPTR_FROM_LISTTAG(struct PCB_INFO, general_tag, g_curThreadTag);
     next_thread_pcb->status = TASK_RUNNING;
+    process_active(next_thread_pcb);
     switch_to(cur_thread_pcb, next_thread_pcb);
 }
 
@@ -65,20 +67,21 @@ void thread_block(enum TASK_STATUS status) {
 /* 将线程解除阻塞 */
 void thread_unblock(struct PCB_INFO* pthread) {
     enum interrupt_status old_status = get_interrupt_status();
+    interrupt_disable();
     ASSERT(((pthread->status == TASK_BLOCKED) || (pthread->status == TASK_WAITING) || (pthread->status == TASK_HANGING)));
     if (pthread->status != TASK_READY) {
-        if (elem_find(&s_readyThreadList, &pthread->general_tag)) {
+        if (elem_find(&g_readyThreadList, &pthread->general_tag)) {
             return;
         }
         pthread->status = TASK_READY;
-        list_push(&s_readyThreadList, &pthread->general_tag);    // 放到队列的最前面,使其尽快得到调度
+        list_push(&g_readyThreadList, &pthread->general_tag);    // 放到队列的最前面,使其尽快得到调度
     } 
     set_interrupt_status(old_status);
 }
 
 /**************** 线程创建相关函数 *******************/
 /* 初始化线程基本信息 */
-static void init_thread_pcb(struct PCB_INFO* thread_pcb, char* name, int prio) {
+void init_thread_pcb(struct PCB_INFO* thread_pcb, char* name, int prio) {
     memset(thread_pcb, 0, sizeof(*thread_pcb));
     strcpy(thread_pcb->name, name);
 
@@ -103,7 +106,7 @@ static void thread_running(thread_func start_routine, void* arg) {
     start_routine(arg);
 }
 /* 初始化线程栈 THREAD_STACK, 将待执行的函数和参数放到 THREAD_STACK 中相应的位置 */
-static void init_thread_stack(struct PCB_INFO* thread_pcb, thread_func start_routine, void* arg) {
+void init_thread_stack(struct PCB_INFO* thread_pcb, thread_func start_routine, void* arg) {
    /* 预留中断栈空间 */
    thread_pcb->self_kstack -= sizeof(struct INTR_STACK);
    /* 预留线程栈空间 */
@@ -125,11 +128,11 @@ struct PCB_INFO* thread_create(char* name, int prio, thread_func start_routine, 
     init_thread_pcb(pcb, name, prio);
     init_thread_stack(pcb, start_routine, arg);
     /* 加入就绪线程队列 */
-    // ASSERT(!elem_find(&s_readyThreadList, &pcb->general_tag));
-    list_append(&s_readyThreadList, &pcb->general_tag);
+    // ASSERT(!elem_find(&g_readyThreadList, &pcb->general_tag));
+    list_append(&g_readyThreadList, &pcb->general_tag);
     /* 加入全部线程队列 */
-    // ASSERT(!elem_find(&s_allThreadList, &pcb->all_list_tag));
-    list_append(&s_allThreadList, &pcb->all_list_tag);
+    // ASSERT(!elem_find(&g_allThreadList, &pcb->all_list_tag));
+    list_append(&g_allThreadList, &pcb->all_list_tag);
     return pcb;
 }
 
@@ -143,17 +146,17 @@ static void make_kernelmain_to_thread(void) {
     put_int((uint32_t)s_mainThreadPCB);
     put_char('\n');
     init_thread_pcb(s_mainThreadPCB, "main", 20);
-    /* main函数是当前线程, 当前线程不在 s_readyThreadList 中,
-    * 所以只将其加在 s_allThreadList 中. */
-    ASSERT(!elem_find(&s_allThreadList, &s_mainThreadPCB->all_list_tag));
-    list_append(&s_allThreadList, &s_mainThreadPCB->all_list_tag);
+    /* main函数是当前线程, 当前线程不在 g_readyThreadList 中,
+    * 所以只将其加在 g_allThreadList 中. */
+    ASSERT(!elem_find(&g_allThreadList, &s_mainThreadPCB->all_list_tag));
+    list_append(&g_allThreadList, &s_mainThreadPCB->all_list_tag);
 }
 
 /**************** 初始化 *******************/
 void thread_init(void) {
     put_str("thread_init start\n");
-    list_init(&s_readyThreadList);
-    list_init(&s_allThreadList);
+    list_init(&g_readyThreadList);
+    list_init(&g_allThreadList);
     /* 将当前main函数创建为线程 */
     make_kernelmain_to_thread();
     put_str("thread_init done\n");

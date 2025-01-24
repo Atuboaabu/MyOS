@@ -7,9 +7,11 @@
 #include "console.h"
 #include "keyboard.h"
 #include "tss.h"
+#include "process.h"
 
 extern struct ioqueue g_keyboardIOQueue;
 void thread_A(void *arg);
+void process_A();
 
 int main(void) {
     put_str("\nkernel start!\n");
@@ -21,7 +23,8 @@ int main(void) {
     keyboard_init();
     tss_init();
 
-    thread_create("ThreadA", 20, thread_A, NULL);
+    // thread_create("ThreadA", 20, thread_A, NULL);
+    process_execute(process_A, "process_A");
     interrupt_enable();
     while(1) {
         // console_put_str("Main  ");
@@ -31,7 +34,12 @@ int main(void) {
 
 void thread_A(void *arg) {
     while(1) {
-        char c = ioqueue_getchar(&g_keyboardIOQueue);
-        console_put_char(c);
+        console_put_str("thread_A  ");
+    }
+}
+
+void process_A() {
+    while(1) {
+        console_put_str("process_A  ");
     }
 }

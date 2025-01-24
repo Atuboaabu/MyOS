@@ -83,6 +83,10 @@ void thread_schedule();
 void thread_block(enum TASK_STATUS status);
 /* 将线程解除阻塞 */
 void thread_unblock(struct PCB_INFO* pthread);
+/* 初始化线程基本信息 */
+void init_thread_pcb(struct PCB_INFO* thread_pcb, char* name, int prio);
+/* 初始化线程栈 THREAD_STACK, 将待执行的函数和参数放到 THREAD_STACK 中相应的位置 */
+void init_thread_stack(struct PCB_INFO* thread_pcb, thread_func start_routine, void* arg);
 /* 创建新的线程 */
 struct PCB_INFO* thread_create(char* name, int prio, thread_func start_routine, void* arg);
 

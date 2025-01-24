@@ -2,10 +2,16 @@
 #include "print.h"
 #include "string.h"
 #include "boot.h"
+#include "thread.h"
+#include "memory.h"
 
 static struct tss s_tss;
 /* GDT描述符的起始地址 0x903 */
 #define GDT_START_ADDR (0xC0000903)
+
+void tss_update_esp0(struct PCB_INFO* p_pcb) {
+    s_tss.esp0 = (uint32_t*)((uint32_t)p_pcb + PAGE_SIZE);
+}
 
 void tss_init() {
     put_str("tss init start!\n");
