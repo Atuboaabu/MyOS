@@ -5,6 +5,8 @@
 
 /* 中断处理函数入口声明，定义在kernel.asm中 */
 extern void* interrupt_hld_table[IDT_SIZE];
+/* syscall 中断处理函数 */
+extern uint32_t syscall_handler(void);
 /* IDT中断处理函数数组 */
 void* g_IDT_handle[IDT_SIZE];
 /* IDT中断描述符表数组 */
@@ -27,6 +29,7 @@ void idt_desc_init()
     for (int i = 0; i < IDT_SIZE; i++) {
         make_idt_desc(&g_IDT[i], IDT_DESC_ATTR_DPL0, interrupt_hld_table[i]);
     }
+    make_idt_desc(&g_IDT[SYSCALL_INDEX], IDT_DESC_ATTR_DPL3, syscall_handler);
     put_str("idt desc init done!\n");
 }
 
