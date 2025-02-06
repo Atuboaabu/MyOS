@@ -15,12 +15,10 @@ extern struct list g_readyThreadList;
 extern struct list g_allThreadList;
 
 void process_start(void* _filename) {
-    console_put_str("process_start\n");
     void* func = _filename;
     struct PCB_INFO* cur_pcb = get_curthread_pcb();
     /* 获取中断栈指针 */
-    cur_pcb->self_kstack += sizeof(struct THREAD_STACK);
-    struct INTR_STACK* intr_stack = (struct INTR_STACK*)cur_pcb->self_kstack;
+    struct INTR_STACK* intr_stack = (struct INTR_STACK*)(cur_pcb->self_kstack + sizeof(struct THREAD_STACK));
     memset(intr_stack, 0, sizeof(struct INTR_STACK));
     intr_stack->ds = SL_USRDATA;
     intr_stack->es = SL_USRDATA;
@@ -36,12 +34,10 @@ void process_start(void* _filename) {
     intr_stack->esp = (void*)((uint32_t)bind_vaddr_with_mempool(POOL_FLAG_USER, USER_STACK_VADDR) + PAGE_SIZE);
     intr_stack->ss = SL_USRDATA;
     asm volatile("movl %0, %%esp; jmp interrupt_exit" : : "g" (intr_stack) : "memory");
-    console_put_str("process_end\n");
 }
 
 /* 激活页表 */
 void process_pgdir_active(struct PCB_INFO* p_pcb) {
-    console_put_str("process_pgdir_active_start\n");
     /********************************************************
     * 执行此函数时,当前任务可能是线程。
     * 之所以对线程也要重新安装页表, 原因是上一次被调度的可能是进程,
@@ -54,30 +50,22 @@ void process_pgdir_active(struct PCB_INFO* p_pcb) {
         pgdir_phyaddr = vaddr_to_phyaddr((uint32_t)p_pcb->pgdir);
     }
 
-    console_put_str("pgdir_phyaddr = ");
-    console_put_int(pgdir_phyaddr);
-    console_put_char('\n');
-
     /* 更新页目录寄存器cr3, 使新页表生效 */
     asm volatile ("movl %0, %%cr3" : : "r" (pgdir_phyaddr) : "memory");
-    console_put_str("process_pgdir_active_done\n");
 }
 
 void process_active(struct PCB_INFO* p_pcb) {
-    console_put_str("process_active start\n");
     ASSERT(p_pcb != NULL);
     process_pgdir_active(p_pcb);
     if (p_pcb->pgdir != NULL) {
         tss_update_esp0(p_pcb);
     }
-    console_put_str("process_active done\n");
 }
 
 /* 创建进程的页目录表 */
 uint32_t* process_create_pgdir() {
     uint32_t* pg_vaddr = get_kernel_pages(1);
     if (pg_vaddr == NULL) {
-        console_put_str("process_create_pgdir: get_kernel_page failed!\n");
         return NULL;
     }
     /* 拷贝内核页目录表 第 768 项 ~ 第 1023 项，即：内核区间页目录表 */
@@ -89,12 +77,6 @@ uint32_t* process_create_pgdir() {
     pde->RW = 1;
     pde->US = 1;
     pg_vaddr[1023] = *((uint32_t*)pde);
-    console_put_str("process_create_pgdir: pde = ");
-    console_put_int(pg_vaddr[1023]);
-    console_put_char('\n');
-    console_put_str("process_create_pgdir: pg_vaddr = ");
-    console_put_int((uint32_t)pg_vaddr);
-    console_put_char('\n');
     return pg_vaddr;
 }
 

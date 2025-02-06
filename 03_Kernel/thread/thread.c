@@ -39,9 +39,6 @@ void thread_schedule() {
         不需要将其加入队列, 因为当前线程不在就绪队列中。*/
     }
     ASSERT(!list_empty(&g_readyThreadList));
-    // put_str("schedual ");
-    // put_int((uint32_t)cur_thread_pcb);
-    // put_char('\n');
     g_curThreadTag = NULL;	  // thread_tag清空
     g_curThreadTag = list_pop(&g_readyThreadList);  // 取出队列的第一个线程跳转执行
     struct PCB_INFO* next_thread_pcb = GET_ENTRYPTR_FROM_LISTTAG(struct PCB_INFO, general_tag, g_curThreadTag);

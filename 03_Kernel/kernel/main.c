@@ -12,6 +12,7 @@
 extern struct ioqueue g_keyboardIOQueue;
 void thread_A(void *arg);
 void process_A();
+int a = 0;
 
 int main(void) {
     put_str("\nkernel start!\n");
@@ -23,7 +24,8 @@ int main(void) {
     keyboard_init();
     tss_init();
 
-    // thread_create("ThreadA", 20, thread_A, NULL);
+    thread_create("ThreadA", 20, thread_A, NULL);
+    // thread_create("process_A", 20, process_A, NULL);
     process_execute(process_A, "process_A");
     interrupt_enable();
     while(1) {
@@ -34,12 +36,14 @@ int main(void) {
 
 void thread_A(void *arg) {
     while(1) {
-        console_put_str("thread_A  ");
+        console_put_str("thread_A, a=");
+        console_put_int(a);
+        console_put_char('\n');
     }
 }
 
-void process_A() {
+void process_A(void *arg) {
     while(1) {
-        console_put_str("process_A  ");
+        a++;
     }
 }

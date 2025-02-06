@@ -1457,7 +1457,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="fT5RZk1PV_puluYo6MOJ" name="用户进程">
-    <mxGraphModel dx="1104" dy="1750" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1361" dy="1866" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -2119,6 +2119,57 @@
         </mxCell>
         <mxCell id="YQXs2_tdpLPkWVDDWkN8-46" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;shape=flexArrow;dashed=1;fillColor=#fa6800;strokeColor=#C73500;" parent="1" source="YQXs2_tdpLPkWVDDWkN8-42" target="yfTHVXIQ8e-rQ1kKYfO3-102" edge="1">
           <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p27TziuJrDnbyr86WeWI-1" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;opacity=50;" vertex="1" parent="1">
+          <mxGeometry x="20" y="1890" width="810" height="960" as="geometry" />
+        </mxCell>
+        <mxCell id="p27TziuJrDnbyr86WeWI-2" value="&lt;b&gt;特权级切换：内核态-&amp;gt;用户态&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="291.5" y="2820" width="237" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="p27TziuJrDnbyr86WeWI-16" value="&lt;p&gt;在特权级切换时，CPU 会使用 &lt;strong&gt;TSS（任务状态段）&lt;/strong&gt; 中保存的内核栈指针。TSS 通常只保存以下关键字段：&lt;/p&gt;&lt;p&gt;&lt;strong style=&quot;background-color: initial;&quot;&gt;&lt;code&gt;- SS0&lt;/code&gt;&lt;/strong&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;：内核态栈的段选择子&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;strong style=&quot;background-color: initial;&quot;&gt;&lt;code&gt;- ESP0&lt;/code&gt;&lt;/strong&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;：内核态栈的指针&lt;/span&gt;&lt;/p&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="590" y="2530" width="220" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="p27TziuJrDnbyr86WeWI-21" value="" style="group" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="590" y="1910" width="220" height="390" as="geometry" />
+        </mxCell>
+        <mxCell id="p27TziuJrDnbyr86WeWI-3" value="&lt;p style=&quot;&quot;&gt;&lt;b&gt;内核使用 &lt;code&gt;IRET&lt;/code&gt;D 指令恢复用户态上下文。硬件会自动恢复：&lt;/b&gt;&lt;/p&gt;&lt;p style=&quot;&quot;&gt;&lt;code style=&quot;background-color: initial;&quot;&gt;- EIP&lt;/code&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;（指令指针）&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;&quot;&gt;&lt;code style=&quot;background-color: initial;&quot;&gt;- CS&lt;/code&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;（代码段选择子）&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;&quot;&gt;&lt;code style=&quot;background-color: initial;&quot;&gt;- EFLAGS&lt;/code&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;（标志寄存器）&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;&quot;&gt;&lt;code style=&quot;background-color: initial;&quot;&gt;- ESP&lt;/code&gt;&lt;span style=&quot;background-color: initial;&quot;&gt; 和&amp;nbsp;&lt;/span&gt;&lt;code style=&quot;background-color: initial;&quot;&gt;SS&lt;/code&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;（如果发生特权级切换）&lt;/span&gt;&lt;/p&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="p27TziuJrDnbyr86WeWI-21">
+          <mxGeometry width="220" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="p27TziuJrDnbyr86WeWI-13" value="" style="shape=flexArrow;endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="p27TziuJrDnbyr86WeWI-21" target="p27TziuJrDnbyr86WeWI-12">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="109.5" y="170" as="sourcePoint" />
+            <mxPoint x="109.5" y="220" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="p27TziuJrDnbyr86WeWI-15" value="" style="group" vertex="1" connectable="0" parent="p27TziuJrDnbyr86WeWI-21">
+          <mxGeometry y="220" width="220" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="p27TziuJrDnbyr86WeWI-12" value="&lt;div&gt;interrupt_exit:&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; add esp, 4 ;跳过中断号&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; popad&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; ;edi-&amp;gt;eax通用寄存器弹出&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; pop gs&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; pop fs&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; pop es&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; pop ds&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; add esp, 4&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; iretd&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=default;" vertex="1" parent="p27TziuJrDnbyr86WeWI-15">
+          <mxGeometry width="220" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="p27TziuJrDnbyr86WeWI-14" value="中断返回" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="p27TziuJrDnbyr86WeWI-15">
+          <mxGeometry x="160" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="p27TziuJrDnbyr86WeWI-22" value="" style="group" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="40" y="1910" width="520" height="860" as="geometry" />
+        </mxCell>
+        <mxCell id="p27TziuJrDnbyr86WeWI-4" value="&lt;p style=&quot;&quot;&gt;&lt;b&gt;发生中断时的栈布局：&lt;/b&gt;&lt;/p&gt;&lt;p style=&quot;&quot;&gt;&lt;code style=&quot;background-color: initial;&quot;&gt;- SS&lt;/code&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;（用户态）&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;&quot;&gt;&lt;code style=&quot;background-color: initial;&quot;&gt;-&amp;nbsp;&lt;/code&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;ESP (用户态)&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;&quot;&gt;&lt;code style=&quot;background-color: initial;&quot;&gt;- EFLAGS&lt;/code&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;（标志寄存器）&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;&quot;&gt;&lt;code style=&quot;background-color: initial;&quot;&gt;-&amp;nbsp;&lt;/code&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;CS (用户态)&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;-&amp;nbsp; &amp;nbsp;EIP (用户态)&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;&quot;&gt;-&amp;nbsp; &amp;nbsp;通用寄存器等数据&lt;span style=&quot;background-color: initial;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="p27TziuJrDnbyr86WeWI-22">
+          <mxGeometry x="155" width="220" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="p27TziuJrDnbyr86WeWI-6" value="" style="shape=flexArrow;endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="p27TziuJrDnbyr86WeWI-22" source="p27TziuJrDnbyr86WeWI-4" target="p27TziuJrDnbyr86WeWI-5">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="220" y="260" as="sourcePoint" />
+            <mxPoint x="270" y="210" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="p27TziuJrDnbyr86WeWI-10" value="" style="group" vertex="1" connectable="0" parent="p27TziuJrDnbyr86WeWI-22">
+          <mxGeometry y="240" width="520" height="620" as="geometry" />
+        </mxCell>
+        <mxCell id="p27TziuJrDnbyr86WeWI-5" value="&lt;p&gt;struct intr_stack {&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; uint32_t vec_no;&lt;span style=&quot;white-space:pre&quot;&gt;&#x9;&lt;/span&gt; // kernel.S 宏VECTOR中push %1压入的中断号&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; uint32_t edi;&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; uint32_t esi;&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; uint32_t ebp;&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; uint32_t esp_dummy;&lt;span style=&quot;white-space:pre&quot;&gt;&#x9;&lt;/span&gt; // 虽然pushad把esp也压入,但esp是不断变化的,所以会被popad忽略&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; uint32_t ebx;&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; uint32_t edx;&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; uint32_t ecx;&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; uint32_t eax;&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; uint32_t gs;&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; uint32_t fs;&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; uint32_t es;&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; uint32_t ds;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;/* 以下由cpu从低特权级进入高特权级时压入 */&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; uint32_t err_code;&lt;span style=&quot;white-space:pre&quot;&gt;&#x9;&#x9;&lt;/span&gt; // err_code会被压入在eip之后&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; void (*eip) (void);&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; uint32_t cs;&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; uint32_t eflags;&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; void* esp;&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; uint32_t ss;&lt;/p&gt;&lt;p&gt;};&lt;/p&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;horizontal=1;fillColor=default;" vertex="1" parent="p27TziuJrDnbyr86WeWI-10">
+          <mxGeometry width="520" height="620" as="geometry" />
+        </mxCell>
+        <mxCell id="p27TziuJrDnbyr86WeWI-9" value="中断栈" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="p27TziuJrDnbyr86WeWI-10">
+          <mxGeometry x="461.1320754716981" width="58.867924528301884" height="30" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

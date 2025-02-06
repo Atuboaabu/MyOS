@@ -59,8 +59,8 @@ struct GDT_DESC {
 #define SL_DATA  ((0x0002 << 3) + SL_TI_GDT + SL_RPL0)      //数据段选择子
 #define SL_VIDEO ((0x0003 << 3) + SL_TI_GDT + SL_RPL0)      //显存段选择子
 #define SL_TSS   ((0x0004 << 3) + SL_TI_GDT + SL_RPL0)      //显存段选择子
-#define SL_USRCODE   ((0x0005 << 3) + SL_TI_GDT + SL_RPL0)  //用户代码段选择子
-#define SL_USRDATA   ((0x0006 << 3) + SL_TI_GDT + SL_RPL0)  //用户数据段选择子
+#define SL_USRCODE   ((0x0005 << 3) + SL_TI_GDT + SL_RPL3)  //用户代码段选择子
+#define SL_USRDATA   ((0x0006 << 3) + SL_TI_GDT + SL_RPL3)  //用户数据段选择子
 
 /* IDT 描述符部分宏定义 */
 #define IDT_DESC_P1        (1 << 7)

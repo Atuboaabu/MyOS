@@ -18,17 +18,17 @@ void tss_init() {
     /* 初始化 tss */
     uint32_t tss_size = sizeof(s_tss);
     memset(&s_tss, 0, tss_size);
-    s_tss.ss0 = SL_CODE;
+    s_tss.ss0 = SL_DATA;  // 内核栈的选择子，本系统中与数据段选择子为同一个
     s_tss.io_map_base = tss_size;
     /* tss 描述符添加 */
     struct GDT_DESC tss_desc;
     uint32_t tss_desc_size = sizeof(tss_desc);
     memset(&tss_desc, 0, tss_desc_size);
     tss_desc.base_0_15 = ((uint32_t)(&s_tss) & 0x0000FFFF);
-    tss_desc.base_16_23 = ((uint32_t)(&s_tss) & 0x00FF0000 >> 16);
-    tss_desc.base_24_31 = ((uint32_t)(&s_tss) & 0xFF000000 >> 24);
+    tss_desc.base_16_23 = (((uint32_t)(&s_tss) & 0x00FF0000) >> 16);
+    tss_desc.base_24_31 = (((uint32_t)(&s_tss) & 0xFF000000) >> 24);
     tss_desc.limit_0_15 = ((tss_size - 1) & 0x0000FFFF);
-    tss_desc.limit_16_19 = ((tss_size - 1) & 0x000F0000 >> 16);
+    tss_desc.limit_16_19 = (((tss_size - 1) & 0x000F0000) >> 16);
     tss_desc.type = 9;
     tss_desc.s = 0;
     tss_desc.dpl = 0;
