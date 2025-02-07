@@ -14,8 +14,24 @@ struct list g_readyThreadList;
 struct list g_allThreadList;
 /* 线程结点 */
 struct list_elem* g_curThreadTag;
+/* pid申请的互斥锁 */
+static struct lock pid_lock;
 /* 跳转执行函数：由汇编语言实现 */
 extern void switch_to(struct PCB_INFO* cur_pcb, struct PCB_INFO* next_pcb);
+
+/**************** 线程信息获取函数 *******************/
+static pid_t allocate_pid() {
+    static pid_t pid = 0;
+    lock_acquire(&pid_lock);
+    pid++;
+    lock_release(&pid_lock);
+    return pid;
+}
+
+/* 获取当前进程/线程 pid */
+uint32_t sys_getpid() {
+    return get_curthread_pcb()->pid;
+}
 
 /**************** 线程调度相关函数 *******************/
 /* 获取当前线程pcb指针 */
@@ -81,6 +97,7 @@ void thread_unblock(struct PCB_INFO* pthread) {
 void init_thread_pcb(struct PCB_INFO* thread_pcb, char* name, int prio) {
     memset(thread_pcb, 0, sizeof(*thread_pcb));
     strcpy(thread_pcb->name, name);
+    thread_pcb->pid = allocate_pid();
 
     if (thread_pcb == s_mainThreadPCB) {
         /* 由于把main函数也封装成一个线程, 并且它一直是运行的, 故将其直接设为 TASK_RUNNING */
@@ -154,6 +171,7 @@ void thread_init(void) {
     put_str("thread_init start\n");
     list_init(&g_readyThreadList);
     list_init(&g_allThreadList);
+    lock_init(&pid_lock);
     /* 将当前main函数创建为线程 */
     make_kernelmain_to_thread();
     put_str("thread_init done\n");

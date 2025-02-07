@@ -90,7 +90,7 @@ CREATE_INTERUPT_HLD 0x2F, push 0
 
 ;;;;; 0x80 中断处理流程 ;;;;;
 [bits 32]
-extern syscall_table
+extern g_Syscall_Table
 section .text
 global syscall_handler
 syscall_handler:
@@ -99,7 +99,7 @@ syscall_handler:
     push es
     push fs
     push gs
-    pushad	 
+    pushad
     push 0x80        ; 压入 0x80 中断号，保持统一的栈格式
 
     ; 为系统调用子功能传入参数
@@ -108,9 +108,9 @@ syscall_handler:
     push ebx         ; 系统调用中第1个参数
 
     ; 调用子功能处理函数
-    call [syscall_table + eax * 4]
+    call [g_Syscall_Table + eax * 4]
     add esp, 12      ; 跨过上面的三个参数
 
     ; 将call调用后的返回值存入待当前内核栈中eax的位置
-    mov [esp + 8 * 4], eax	
+    mov [esp + 8 * 4], eax
     jmp interrupt_exit    ; intr_exit返回, 恢复上下文

@@ -8,6 +8,8 @@
 #include "keyboard.h"
 #include "tss.h"
 #include "process.h"
+#include "syscall.h"
+#include "stdio.h"
 
 extern struct ioqueue g_keyboardIOQueue;
 void thread_A(void *arg);
@@ -23,8 +25,9 @@ int main(void) {
     console_init();
     keyboard_init();
     tss_init();
+    syscall_init();
 
-    thread_create("ThreadA", 20, thread_A, NULL);
+    // thread_create("ThreadA", 20, thread_A, NULL);
     // thread_create("process_A", 20, process_A, NULL);
     process_execute(process_A, "process_A");
     interrupt_enable();
@@ -35,15 +38,14 @@ int main(void) {
 }
 
 void thread_A(void *arg) {
-    while(1) {
-        console_put_str("thread_A, a=");
-        console_put_int(a);
-        console_put_char('\n');
+    sys_write("thread_A \n");
+    while(1) { 
     }
 }
 
 void process_A(void *arg) {
+    printf("process_A pid = %d ", getpid());
     while(1) {
-        a++;
+        // a = getpid();
     }
 }
