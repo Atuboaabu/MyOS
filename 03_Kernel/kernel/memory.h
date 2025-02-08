@@ -68,6 +68,20 @@ struct virtual_addr_pool {
     struct bitmap pool_bitmap; // 虚拟地址对应的位图，用于管理虚拟地址
 };
 
+/***** 堆内存块管理 *****/
+/* 内存块 */
+struct mem_block {
+    struct list_elem mem_elem;
+};
+/* 内存池 */
+struct mem_block_pool {
+    uint32_t mem_block_size;     // 内存块大小
+    uint32_t mem_block_cnt;      // mem_block的数量.
+    struct list mem_block_list;  // 可用的 mem_block 的链表
+};
+/* 内存池数量：16B、32B、64B、128B、256B、512B、1024B 7种类型的池子，大于 1024B 时直接分配 1Page = 4096B */
+#define MEMORY_POOL_COUNT (7)
+
 void memory_init();
 void* get_kernel_pages(uint32_t cnt);
 void* get_user_pages(uint32_t cnt);

@@ -6,9 +6,18 @@
 #include "debug.h"
 #include "thread.h"
 
+/* 内存仓库 arena 元信息 */
+struct mem_arena {
+    uint32_t cnt;                               // 此 arena 空闲的 mem_block 数量，isPage 为 true 表示分配的页数
+    bool isPage;                                // true 表示是页分配，false 表示是block分配
+    struct mem_block_pool* mem_block_pool_ptr;  // 此 arena 关联的 mem_block_pool
+};
+
 struct memory_poll kernel_memory_pool;
 struct memory_poll user_memory_pool;
 struct virtual_addr_pool kernel_virtual_addr;  // 内核虚拟地址分配管理
+/* 内核内存池数组 */
+static struct mem_block_pool kernel_memblock_pools[MEMORY_POOL_COUNT];
 
 /* 在虚拟内存地址池中申请地址：成功则返回虚拟页的起始地址, 失败则返回NULL */
 static void* vaddr_get(enum pool_flag pf, uint32_t cnt) {
@@ -193,6 +202,97 @@ uint32_t vaddr_to_phyaddr(uint32_t vaddr) {
     uint32_t* pte = get_pte_ptr(vaddr);
     return ((*pte & 0xFFFFF000) + (vaddr & 0x00000FFF));
 }
+
+/* 在堆中申请内存 */
+void* sys_malloc(uint32_t size) {
+    enum pool_flag pf;
+    struct memory_poll* mem_pool;
+    uint32_t pool_size;
+    struct mem_block_pool* block_pool;
+    struct PCB_INFO* cur_thread_pcb = get_curthread_pcb();
+
+    if (cur_thread_pcb->pgdir == NULL) {  // 内核线程
+        pf = POOL_FLAG_KERNEL; 
+        pool_size = kernel_memory_pool.size;
+        mem_pool = &kernel_memory_pool;
+        block_pool = kernel_memblock_pools;
+    } else {  // 用户进程
+        pf = POOL_FLAG_USER;
+        pool_size = user_memory_pool.size;
+        mem_pool = &user_memory_pool;
+        block_pool = cur_thread_pcb->user_memblock_pools;
+    }
+
+    /* 若申请的内存不在内存池容量范围内则直接返回NULL */
+    if (size < 0 || size > pool_size) {
+        return NULL;
+    }
+
+    struct mem_arena* ma;
+    struct mem_block* mb;	
+    lock_acquire(&mem_pool->lock);
+
+    /* 超过最大内存块1024B, 分配页框 */
+    if (size > 1024) {
+        // 需要分配的页数(向上取整)
+        uint32_t page_cnt = (size + sizeof(struct arena) + PG_SIZE - 1) / PG_SIZE;
+        ma = malloc_page(pf, page_cnt);
+        if (ma != NULL) {
+            memset(ma, 0, page_cnt * PG_SIZE); 
+            /* 页分配：mem_block_pool_ptr 置为 NULL, cnt 置为页框数, isPage 置为 true */
+            ma->mem_block_pool_ptr = NULL;
+            ma->cnt = page_cnt;
+            ma->isPage = true;
+            lock_release(&mem_pool->lock);
+            return (void*)(ma + 1);  // 跨过arena大小，把剩下的内存返回
+        } else { 
+            lock_release(&mem_pool->lock);
+            return NULL; 
+        }
+    } else {  // 申请内存小于等于 1024B，按 block 分配
+        uint8_t pool_idx;
+        /* 从内存块描述符中匹配合适的内存块规格 */
+        for (pool_idx = 0; pool_idx < MEMORY_POOL_COUNT; pool_idx++) {
+            if (size <= block_pool[pool_idx].mem_block_size) {  // 从小往大进行匹配，找到后退出
+                break;
+            }
+        }
+
+        /* 若对应大小内存池无空闲内存块，则申请一个页框 */
+        if (list_empty(&block_pool[pool_idx].mem_block_list)) {
+            ma = malloc_page(pf, 1);       // 分配1页框做为arena
+            if (ma == NULL) {
+                lock_release(&mem_pool->lock);
+                return NULL;
+            }
+            memset(ma, 0, PG_SIZE);
+
+            
+            ma->mem_block_pool_ptr = &block_pool[pool_idx];
+            ma->isPage = false;
+            ma->cnt = block_pool[pool_idx].mem_block_cnt;
+
+            uint32_t block_idx;
+            /* 将arena拆分成内存块, 并添加到内存块 mem_block_list 中 */
+            for (block_idx = 0; block_idx < block_pool[pool_idx].mem_block_cnt; block_idx++) {
+                mb = arena2block(ma, block_idx);
+                ASSERT(!elem_find(&ma->mem_block_pool_ptr->mem_block_list, &mb->mem_elem));
+                list_append(&ma->mem_block_pool_ptr->mem_block_list, &mb->mem_elem);	
+            }
+        }
+
+        /* 开始分配内存块 */
+        mb = elem2entry(struct mem_block, free_elem, list_pop(&(block_pool[pool_idx].mem_block_list)));
+        memset(mb, 0, block_pool[pool_idx].mem_block_size);
+
+        ma = block2arena(mb);  // 获取内存块b所在的arena
+        ma->cnt--;		   // 将此arena中的空闲内存块数减1
+        lock_release(&mem_pool->lock);
+        return (void*)mb;
+   }
+}
+
+
 
 void memory_pool_init(uint32_t all_memory_bytes)
 {
