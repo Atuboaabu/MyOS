@@ -8,6 +8,8 @@
 void* g_Syscall_Table[SYSCALL_MAX];
 /* 系统调用内核处理函数表初始化 */
 extern uint32_t sys_getpid();
+extern void* sys_malloc(uint32_t size);
+extern void sys_free(void* ptr);
 
 uint32_t sys_write(char* str) {
     console_put_str(str);
@@ -18,6 +20,8 @@ void syscall_init() {
     put_str("syscall_init start\n");
     g_Syscall_Table[SYS_GETPID] = sys_getpid;
     g_Syscall_Table[SYS_WRITE]  = sys_write;
+    g_Syscall_Table[SYS_MALLOC]  = sys_malloc;
+    g_Syscall_Table[SYS_FREE]  = sys_free;
     put_str("syscall_init done\n");
 }
 
@@ -77,4 +81,14 @@ uint32_t getpid() {
 
 uint32_t write(char* str) {
    return _syscall1(SYS_WRITE, str);
+}
+
+/* 申请 size 字节大小的内存 */
+void* malloc(uint32_t size) {
+    return (void*)_syscall1(SYS_MALLOC, size);
+}
+
+/* 释放 ptr 指向的内存 */
+void free(void* ptr) {
+    _syscall1(SYS_FREE, ptr);
 }

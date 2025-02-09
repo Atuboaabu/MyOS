@@ -102,6 +102,7 @@ void process_execute(void* filename, char* name) {
     process_bitmap_create(process_pcb);
     init_thread_stack(process_pcb, process_start, filename);
     process_pcb->pgdir = process_create_pgdir();
+    mem_block_pool_init(process_pcb->user_memblock_pools);
 
     enum interrupt_status old_status = get_interrupt_status();
     interrupt_disable();

@@ -45,6 +45,10 @@ void thread_A(void *arg) {
 
 void process_A(void *arg) {
     printf("process_A pid = %d ", getpid());
+    void* addr = malloc(17);
+    void* addr1 = malloc(19);
+    printf("addr = 0x%x  ", (uint32_t)addr);
+    printf(" addr1 = 0x%x ", (uint32_t)addr1);
     while(1) {
         // a = getpid();
     }

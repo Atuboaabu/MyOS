@@ -6,11 +6,11 @@
 #include "debug.h"
 #include "thread.h"
 
-/* 内存仓库 arena 元信息 */
+/* 内存仓库 mem_arena 元信息 */
 struct mem_arena {
-    uint32_t cnt;                               // 此 arena 空闲的 mem_block 数量，isPage 为 true 表示分配的页数
+    uint32_t cnt;                               // 此 mem_arena 空闲的 mem_block 数量，isPage 为 true 表示分配的页数
     bool isPage;                                // true 表示是页分配，false 表示是block分配
-    struct mem_block_pool* mem_block_pool_ptr;  // 此 arena 关联的 mem_block_pool
+    struct mem_block_pool* mem_block_pool_ptr;  // 此 mem_arena 关联的 mem_block_pool
 };
 
 struct memory_poll kernel_memory_pool;
@@ -90,9 +90,9 @@ uint32_t* get_pde_ptr(uint32_t vaddr) {
     return pde;
 }
 
-/* 页表中添加虚拟地址 _vaddr 与物理地址 _phyaddr 的映射 */
-static void page_table_add(void* _vaddr, void* _phyaddr) {
-    uint32_t vaddr = (uint32_t)_vaddr;
+/* 页表中添加虚拟地址 virtual_addr 与物理地址 _phyaddr 的映射 */
+static void page_table_add(void* virtual_addr, void* _phyaddr) {
+    uint32_t vaddr = (uint32_t)virtual_addr;
     uint32_t phyaddr = (uint32_t)_phyaddr;
     uint32_t* pde = get_pde_ptr(vaddr);
     uint32_t* pte = get_pte_ptr(vaddr);
@@ -203,6 +203,17 @@ uint32_t vaddr_to_phyaddr(uint32_t vaddr) {
     return ((*pte & 0xFFFFF000) + (vaddr & 0x00000FFF));
 }
 
+/* 获取 mem_arena 中的第 index 个 mem_block */
+struct mem_block* get_arena_memblock(struct mem_arena* mem_arena, uint32_t index) {
+    return (struct mem_block*)((uint32_t)mem_arena + sizeof(struct mem_arena)
+            + index * mem_arena->mem_block_pool_ptr->mem_block_size);
+}
+
+/* 根据 memblock 获取其对应的 mem_arena 地址 */
+struct mem_arena* get_arena_by_memblock(struct mem_block* block) {
+    return (struct mem_arena*)((uint32_t)block & 0xFFFFF000);
+}
+
 /* 在堆中申请内存 */
 void* sys_malloc(uint32_t size) {
     enum pool_flag pf;
@@ -228,23 +239,23 @@ void* sys_malloc(uint32_t size) {
         return NULL;
     }
 
-    struct mem_arena* ma;
-    struct mem_block* mb;	
+    struct mem_arena* mem_arena;
+    struct mem_block* block;
     lock_acquire(&mem_pool->lock);
 
     /* 超过最大内存块1024B, 分配页框 */
     if (size > 1024) {
         // 需要分配的页数(向上取整)
-        uint32_t page_cnt = (size + sizeof(struct arena) + PG_SIZE - 1) / PG_SIZE;
-        ma = malloc_page(pf, page_cnt);
-        if (ma != NULL) {
-            memset(ma, 0, page_cnt * PG_SIZE); 
+        uint32_t page_cnt = (size + sizeof(struct mem_arena) + PAGE_SIZE - 1) / PAGE_SIZE;
+        mem_arena = malloc_page(pf, page_cnt);
+        if (mem_arena != NULL) {
+            memset(mem_arena, 0, page_cnt * PAGE_SIZE); 
             /* 页分配：mem_block_pool_ptr 置为 NULL, cnt 置为页框数, isPage 置为 true */
-            ma->mem_block_pool_ptr = NULL;
-            ma->cnt = page_cnt;
-            ma->isPage = true;
+            mem_arena->mem_block_pool_ptr = NULL;
+            mem_arena->cnt = page_cnt;
+            mem_arena->isPage = true;
             lock_release(&mem_pool->lock);
-            return (void*)(ma + 1);  // 跨过arena大小，把剩下的内存返回
+            return (void*)(mem_arena + 1);  // 跨过arena大小，把剩下的内存返回
         } else { 
             lock_release(&mem_pool->lock);
             return NULL; 
@@ -259,40 +270,144 @@ void* sys_malloc(uint32_t size) {
         }
 
         /* 若对应大小内存池无空闲内存块，则申请一个页框 */
-        if (list_empty(&block_pool[pool_idx].mem_block_list)) {
-            ma = malloc_page(pf, 1);       // 分配1页框做为arena
-            if (ma == NULL) {
+        if (list_empty(&(block_pool[pool_idx].mem_block_list))) {
+            mem_arena = malloc_page(pf, 1);       // 分配1页框做为arena
+            if (mem_arena == NULL) {
                 lock_release(&mem_pool->lock);
                 return NULL;
             }
-            memset(ma, 0, PG_SIZE);
+            memset(mem_arena, 0, PAGE_SIZE);
 
             
-            ma->mem_block_pool_ptr = &block_pool[pool_idx];
-            ma->isPage = false;
-            ma->cnt = block_pool[pool_idx].mem_block_cnt;
+            mem_arena->mem_block_pool_ptr = &block_pool[pool_idx];
+            mem_arena->isPage = false;
+            mem_arena->cnt = block_pool[pool_idx].mem_block_cnt;
 
             uint32_t block_idx;
             /* 将arena拆分成内存块, 并添加到内存块 mem_block_list 中 */
             for (block_idx = 0; block_idx < block_pool[pool_idx].mem_block_cnt; block_idx++) {
-                mb = arena2block(ma, block_idx);
-                ASSERT(!elem_find(&ma->mem_block_pool_ptr->mem_block_list, &mb->mem_elem));
-                list_append(&ma->mem_block_pool_ptr->mem_block_list, &mb->mem_elem);	
+                block = get_arena_memblock(mem_arena, block_idx);
+                ASSERT(!elem_find(&(mem_arena->mem_block_pool_ptr->mem_block_list), &(block->mem_elem)));
+                list_append(&(mem_arena->mem_block_pool_ptr->mem_block_list), &(block->mem_elem));	
             }
         }
 
         /* 开始分配内存块 */
-        mb = elem2entry(struct mem_block, free_elem, list_pop(&(block_pool[pool_idx].mem_block_list)));
-        memset(mb, 0, block_pool[pool_idx].mem_block_size);
+        block = GET_ENTRYPTR_FROM_LISTTAG(struct mem_block, mem_elem, list_pop(&(block_pool[pool_idx].mem_block_list)));
+        memset(block, 0, block_pool[pool_idx].mem_block_size);
 
-        ma = block2arena(mb);  // 获取内存块b所在的arena
-        ma->cnt--;		   // 将此arena中的空闲内存块数减1
+        mem_arena = get_arena_by_memblock(block);  // 获取内存块 block 所在的arena
+        mem_arena->cnt--;                          // 将此 mem_arena 中的空闲内存块数减 1
         lock_release(&mem_pool->lock);
-        return (void*)mb;
+        return (void*)block;
    }
 }
 
+/* 将物理地址 phy_addr 对应的页回收到物理内存池 */
+void phyaddr_free(uint32_t phy_addr) {
+    struct memory_poll* mem_pool;
+    uint32_t bit_idx = 0;
+    if (phy_addr >= user_memory_pool.addr_start) {     // 用户物理内存池
+        mem_pool = &user_memory_pool;
+        bit_idx = (phy_addr - user_memory_pool.addr_start) / PAGE_SIZE;
+    } else {	  // 内核物理内存池
+        mem_pool = &kernel_memory_pool;
+        bit_idx = (phy_addr - kernel_memory_pool.addr_start) / PAGE_SIZE;
+    }
+    bitmap_set(&mem_pool->pool_bitmap, bit_idx, 0);	 // 将位图中该位清0
+}
 
+/* 去掉页表中虚拟地址 vaddr 的映射,只去掉 vaddr 对应的pte */
+static void remove_pte_from_pagetable(uint32_t vaddr) {
+    uint32_t* pte = get_pte_ptr(vaddr);
+    *pte &= ~PG_P_1;  // 将页表项pte的P位置0
+    asm volatile ("invlpg %0"::"m" (vaddr):"memory");  //更新tlb
+}
+
+/* 在虚拟地址池中释放以_vaddr起始的连续pg_cnt个虚拟页地址 */
+static void remove_virtual_addr(enum pool_flag pf, void* virtual_addr, uint32_t pg_cnt) {
+    uint32_t bit_idx = 0;
+    uint32_t vaddr = (uint32_t)virtual_addr;
+    uint32_t cnt = 0;
+
+    if (pf == POOL_FLAG_KERNEL) {  // 内核虚拟内存池
+        bit_idx = (vaddr - kernel_virtual_addr.addr_start) / PAGE_SIZE;
+        while(cnt < pg_cnt) {
+            bitmap_set(&kernel_virtual_addr.pool_bitmap, bit_idx + cnt, 0);
+            cnt++;
+        }
+    } else {  // 用户虚拟内存池
+        struct PCB_INFO* cur_thread_pcb = get_curthread_pcb();
+        bit_idx = (vaddr - cur_thread_pcb->user_virtual_addr.addr_start) / PAGE_SIZE;
+        while(cnt < pg_cnt) {
+            bitmap_set(&cur_thread_pcb->user_virtual_addr.pool_bitmap, bit_idx + cnt, 0);
+            cnt++;
+        }
+    }
+}
+
+/* 释放以虚拟地址 virtual_addr 为起始的 pg_cnt 个物理页框 */
+void page_free(enum pool_flag pf, void* virtual_addr, uint32_t pg_cnt) {
+    uint32_t phy_addr;
+    uint32_t vaddr = (uint32_t)virtual_addr;
+    uint32_t cnt = 0;
+    ASSERT(pg_cnt >= 1 && vaddr % PAGE_SIZE == 0); 
+    phy_addr = vaddr_to_phyaddr(vaddr);  // 获取虚拟地址vaddr对应的物理地址
+
+    /* 确保待释放的物理内存在低端 1M + 1k 大小的页目录 + 1k 大小的页表地址范围外 */
+    ASSERT((phy_addr % PAGE_SIZE) == 0 && phy_addr >= 0x102000);
+    while (cnt < pg_cnt) {
+        /* 释放物理内存 */
+        phy_addr = vaddr_to_phyaddr(vaddr);
+        phyaddr_free(phy_addr);
+
+        /* 从页表中清除此虚拟地址所在的页表项pte */
+        remove_pte_from_pagetable(vaddr);
+
+        vaddr += PAGE_SIZE;
+    }
+    /* 从虚拟地址池移除虚拟地址 */
+    remove_virtual_addr(pf, virtual_addr, pg_cnt);
+}
+
+/* 释放内存 */
+void sys_free(void* ptr) {
+    if (ptr == NULL) {
+        return;
+    }
+    enum pool_flag pf;
+    struct memory_poll* mem_pool;
+
+    if (get_curthread_pcb()->pgdir == NULL) {  // 内核线程
+        pf = POOL_FLAG_KERNEL; 
+        mem_pool = &kernel_memory_pool;
+    } else {  // 用户进程
+        pf = POOL_FLAG_USER;
+        mem_pool = &user_memory_pool;
+    }
+
+    lock_acquire(&mem_pool->lock);
+    struct mem_block* block = ptr;
+    struct mem_arena* arena = get_arena_by_memblock(block);  // 把mem_block转换成arena, 获取元信息
+    if (arena->mem_block_pool_ptr == NULL && arena->isPage == true) {  // 大于1024的内存，释放页
+        page_free(pf, arena, arena->cnt); 
+    } else {  // 小于等于 1024 的内存块
+        /* 先将内存块回收到free_list */
+        list_append(&arena->mem_block_pool_ptr->mem_block_list, &block->mem_elem);
+        arena->cnt++;
+        /* 再判断此arena中的内存块是否都是空闲,如果是就释放arena */
+        if (arena->cnt == arena->mem_block_pool_ptr->mem_block_cnt) {
+            uint32_t block_idx;
+            for (block_idx = 0; block_idx < arena->mem_block_pool_ptr->mem_block_cnt; block_idx++) {
+                struct mem_block* block = get_arena_memblock(arena, block_idx);
+                ASSERT(elem_find(&arena->mem_block_pool_ptr->mem_block_list, &block->mem_elem));
+                list_remove(&block->mem_elem);
+            }
+            page_free(pf, arena, 1);
+        }
+    }
+    lock_release(&mem_pool->lock); 
+}
 
 void memory_pool_init(uint32_t all_memory_bytes)
 {
@@ -353,8 +468,23 @@ void memory_pool_init(uint32_t all_memory_bytes)
     put_str("\nmemory pool init done!\n");
 }
 
+/* 初始化堆内存块池子 */
+void mem_block_pool_init(struct mem_block_pool* block_array) {				   
+    uint32_t index;
+    uint32_t block_size = 16;
+    /* 初始化每个 mem_block_pool 描述符 */
+    for (index = 0; index < MEMORY_POOL_COUNT; index++) {
+        block_array[index].mem_block_size = block_size;
+        /* 初始化arena中的内存块数量 */
+        block_array[index].mem_block_cnt = (PAGE_SIZE - sizeof(struct mem_arena)) / block_size;	  
+        list_init(&(block_array[index].mem_block_list));
+        block_size *= 2;  // 下一个规格的内存块
+   }
+}
+
 void memory_init()
 {
     uint32_t memory_bytes = 32 * 1024 * 1024;  // 总共有32MB内存
     memory_pool_init(memory_bytes);
+    mem_block_pool_init(kernel_memblock_pools);
 }

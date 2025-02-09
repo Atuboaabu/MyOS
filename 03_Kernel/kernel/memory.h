@@ -87,5 +87,6 @@ void* get_kernel_pages(uint32_t cnt);
 void* get_user_pages(uint32_t cnt);
 void* bind_vaddr_with_mempool(enum pool_flag pf, uint32_t vaddr);
 uint32_t vaddr_to_phyaddr(uint32_t vaddr);
+void mem_block_pool_init(struct mem_block_pool* block_array);
 
 #endif
