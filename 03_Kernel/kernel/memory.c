@@ -365,6 +365,7 @@ void page_free(enum pool_flag pf, void* virtual_addr, uint32_t pg_cnt) {
         remove_pte_from_pagetable(vaddr);
 
         vaddr += PAGE_SIZE;
+        cnt++;
     }
     /* 从虚拟地址池移除虚拟地址 */
     remove_virtual_addr(pf, virtual_addr, pg_cnt);
@@ -389,7 +390,7 @@ void sys_free(void* ptr) {
     lock_acquire(&mem_pool->lock);
     struct mem_block* block = ptr;
     struct mem_arena* arena = get_arena_by_memblock(block);  // 把mem_block转换成arena, 获取元信息
-    if (arena->mem_block_pool_ptr == NULL && arena->isPage == true) {  // 大于1024的内存，释放页
+    if ((arena->mem_block_pool_ptr == NULL) && (arena->isPage == true)) {  // 大于1024的内存，释放页
         page_free(pf, arena, arena->cnt); 
     } else {  // 小于等于 1024 的内存块
         /* 先将内存块回收到free_list */
