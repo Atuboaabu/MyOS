@@ -85,6 +85,6 @@ clean:
 
 dd_disk:
 	dd if=build/kernel.bin of=$(DISK_IMG) bs=512 seek=9 count=200 conv=notrunc
-	truncate -s %512 $(DISK_IMG)
+	# truncate -s %512 $(DISK_IMG)
 
 all: mk_build_dir build dd_disk
