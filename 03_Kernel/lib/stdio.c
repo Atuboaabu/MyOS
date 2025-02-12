@@ -3,13 +3,6 @@
 #include "string.h"
 #include "syscall.h"
 
-/* 把 ap 指向第一个固定参数v */
-#define va_start(ap, v) (ap = (va_list)&v)
-/* ap 指向下一个参数并返回其值 */
-#define va_arg(ap, t) (*((t*)(ap += 4)))
-/* 清除 ap */
-#define va_end(ap) (ap = NULL)
-
 /* 将整型转换成字符 */
 static void itoa(uint32_t value, char** buf_ptr, uint8_t base) {
     uint32_t m = value % base;
