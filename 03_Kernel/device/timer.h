@@ -3,6 +3,8 @@
 
 /* 函数接口定义部分 */
 void timer_init();
+/* ms级别的休眠函数 */
+void m_sleep(uint32_t ms);
 
 /* PIT 8253控制字相关定义 */
 #define PIT_SC_00    (0)  // Select Chanel 0
@@ -28,6 +30,6 @@ void timer_init();
 #define PIT_CTLPORT_CTL  (0x43)  // 控制寄存器端口号
 
 #define PIT_CNT0_FREQUENCY (1193180)  // 计数器0工作脉冲频率
-#define FREQUENCY_SET(freq) (PIT_CNT0_FREQUENCY / (freq))  // 设置工作评率
+#define FREQUENCY_SET(freq) (PIT_CNT0_FREQUENCY / (freq))  // 设置工作频率
 
 #endif

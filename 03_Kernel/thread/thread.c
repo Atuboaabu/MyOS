@@ -8,6 +8,8 @@
 #define PG_SIZE (4096)
 /* 主线程PCB */
 static struct PCB_INFO* s_mainThreadPCB;
+/* idle线程PCB */
+static struct PCB_INFO* s_idleThreadPCB;
 /* 就绪线程队列 */
 struct list g_readyThreadList;
 /* 所有线程队列 */
@@ -18,6 +20,15 @@ struct list_elem* g_curThreadTag;
 static struct lock pid_lock;
 /* 跳转执行函数：由汇编语言实现 */
 extern void switch_to(struct PCB_INFO* cur_pcb, struct PCB_INFO* next_pcb);
+
+/**************** 系统空闲的线程 *******************/
+static void idle_func(void* arg) {
+    while(1) {
+        thread_block(TASK_BLOCKED);     
+        //执行hlt时必须要保证目前处在开中断的情况下
+        asm volatile("sti; hlt" : : : "memory");
+    }
+}
 
 /**************** 线程信息获取函数 *******************/
 static pid_t allocate_pid() {
@@ -54,7 +65,12 @@ void thread_schedule() {
         /* 若此线程需要某事件发生后才能继续上cpu运行,
         不需要将其加入队列, 因为当前线程不在就绪队列中。*/
     }
+
+    if (list_empty(&g_readyThreadList)) {  // 如果就绪队列为空，则运行 idle 线程
+        thread_unblock(s_idleThreadPCB);
+    }
     ASSERT(!list_empty(&g_readyThreadList));
+
     g_curThreadTag = NULL;	  // thread_tag清空
     g_curThreadTag = list_pop(&g_readyThreadList);  // 取出队列的第一个线程跳转执行
     struct PCB_INFO* next_thread_pcb = GET_ENTRYPTR_FROM_LISTTAG(struct PCB_INFO, general_tag, g_curThreadTag);
@@ -89,6 +105,18 @@ void thread_unblock(struct PCB_INFO* pthread) {
         pthread->status = TASK_READY;
         list_push(&g_readyThreadList, &pthread->general_tag);    // 放到队列的最前面,使其尽快得到调度
     } 
+    set_interrupt_status(old_status);
+}
+
+/* 线程挂起，主动让出cpu，换其它线程运行 */
+void thread_yield(void) {
+    struct PCB_INFO* cur_thread_PCB = get_curthread_pcb();
+    enum interrupt_status old_status = get_interrupt_status();
+    interrupt_disable();
+    ASSERT(!elem_find(&g_readyThreadList, &cur_thread_PCB->general_tag));
+    list_append(&g_readyThreadList, &cur_thread_PCB->general_tag);
+    cur_thread_PCB->status = TASK_READY;
+    thread_schedule();
     set_interrupt_status(old_status);
 }
 
@@ -174,5 +202,6 @@ void thread_init(void) {
     lock_init(&pid_lock);
     /* 将当前main函数创建为线程 */
     make_kernelmain_to_thread();
+    s_idleThreadPCB = thread_create("idle_thread", 10, idle_func, NULL);
     put_str("thread_init done\n");
 }

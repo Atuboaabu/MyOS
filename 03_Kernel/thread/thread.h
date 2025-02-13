@@ -92,6 +92,8 @@ void init_thread_pcb(struct PCB_INFO* thread_pcb, char* name, int prio);
 void init_thread_stack(struct PCB_INFO* thread_pcb, thread_func start_routine, void* arg);
 /* 创建新的线程 */
 struct PCB_INFO* thread_create(char* name, int prio, thread_func start_routine, void* arg);
+/* 挂起线程 */
+void thread_yield(void);
 
 void thread_init(void);
 

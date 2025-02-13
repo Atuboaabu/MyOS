@@ -4,8 +4,16 @@
 #include "interrupt.h"
 #include "thread.h"
 
+/* 时钟滴答频率 */
+#define IRQ0_FREQUENCY (100)
+/* 每次中断 ms 数 */
+#define MIL_SECONDS_PER_INTERUPT (1000 / IRQ0_FREQUENCY)
+/* 系统启动后时钟的所有滴答数 */
+uint32_t g_tickCount;
+
 static void timer_inter_handle() {
     struct PCB_INFO* curThreadPCB = get_curthread_pcb();
+    g_tickCount++;
     if (curThreadPCB == NULL) {
         put_str("curThreadPCB is NULL!");
         put_char("\n");
@@ -24,6 +32,24 @@ static void timer_inter_handle() {
         // put_int(curThreadPCB->ticks);
         // put_char('\n');
     }
+}
+
+/* 以 tick 为单位的sleep, 任何时间形式的 sleep 会转换此ticks形式 */
+static void tick_sleep(uint32_t ticks) {
+    uint32_t start_tick = g_tickCount;
+
+    while (g_tickCount - start_tick < ticks) {	   // 若间隔的ticks数不够便让出cpu
+        thread_yield();
+    }
+}
+
+/* ms级别的休眠函数 */
+void m_sleep(uint32_t ms) {
+    uint32_t sleep_ticks = (ms + MIL_SECONDS_PER_INTERUPT) / MIL_SECONDS_PER_INTERUPT;
+    if(sleep_ticks <= 0) {
+        return;
+    };
+    tick_sleep(sleep_ticks); 
 }
 
 void timer_set(uint8_t port, uint8_t sc, uint8_t rw,
