@@ -40,13 +40,13 @@ void interrupt_handle(uint8_t intr_vec_num)
     put_int(intr_vec_num);
     put_char('\n');
 
-    if (intr_vec_num == 14) {	  // 若为Pagefault,将缺失的地址打印出来并悬停
-      int page_fault_vaddr = 0; 
-      asm ("movl %%cr2, %0" : "=r" (page_fault_vaddr));	  // cr2是存放造成page_fault的地址
-      put_str("\npage fault addr is ");
-      put_int(page_fault_vaddr); 
-   }
-   while(1);
+    if (intr_vec_num == 14) {  // 若为Pagefault,将缺失的地址打印出来并悬停
+        int page_fault_vaddr = 0; 
+        asm ("movl %%cr2, %0" : "=r" (page_fault_vaddr));  // cr2是存放造成page_fault的地址
+        put_str("\npage fault addr is ");
+        put_int(page_fault_vaddr); 
+    }
+    while(1);
 }
 
 /* 中断处理函数表初始化注册 */
