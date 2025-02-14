@@ -10,6 +10,7 @@
 #include "process.h"
 #include "syscall.h"
 #include "stdio.h"
+#include "ide.h"
 
 extern struct ioqueue g_keyboardIOQueue;
 void thread_A(void *arg);
@@ -26,6 +27,7 @@ int main(void) {
     keyboard_init();
     tss_init();
     syscall_init();
+    ide_init();
 
     // thread_create("ThreadA", 20, thread_A, NULL);
     // thread_create("process_A", 20, process_A, NULL);

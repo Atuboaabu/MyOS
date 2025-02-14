@@ -63,5 +63,18 @@ struct list_elem* list_pop(struct list* _list) {
 }
 
 struct list_elem* list_traversal(struct list* _list, list_callback _callback, int _arg) {
+    struct list_elem* _elem = _list->head.next;
+    /* 如果队列为空,就必然没有符合条件的结点,故直接返回NULL */
+    if (list_empty(_list)) { 
+        return NULL;
+    }
+
+   while (_elem != &(_list->tail)) {
+        /* _callback 返回 ture 则认为该元素在回调函数中符合条件，命中，故停止继续遍历 */
+        if (_callback(_elem, _arg)) {
+            return _elem;
+        }
+        _elem = _elem->next;
+    }
     return NULL;
 }

@@ -86,8 +86,8 @@ void pic_init()
     outb(PIC_S_DATA, 0x02);
     outb(PIC_S_DATA, 0x01);
     /* 打开主片IR0 */
-    outb(PIC_M_DATA, 0xFC);
-    outb(PIC_S_DATA, 0xFF);
+    outb(PIC_M_DATA, 0xF8);
+    outb(PIC_S_DATA, 0xBF);
 
     put_str("pic init done!\n");
 }

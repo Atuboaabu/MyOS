@@ -20,6 +20,15 @@ struct partition {
     struct list open_inodes;     // 本分区打开的i结点队列
 };
 
+/* 硬盘结构 */
+struct disk {
+    char name[8];                       // 本硬盘的名称，如sda等
+    struct ide_channel* my_channel;     // 此块硬盘归属于哪个ide通道
+    uint8_t dev_no;                     // 本硬盘是主0还是从1
+    struct partition prim_parts[4];     // 主分区顶多是4个
+    struct partition logic_parts[8];    // 逻辑分区数量上限, 本操作系统设置为8个
+};
+
 /* ata通道结构 */
 struct ide_channel {
     char name[8];                // 本ata通道名称, 如ata0,也被叫做ide0
@@ -31,13 +40,6 @@ struct ide_channel {
     struct disk devices[2];      // 一个通道上连接两个硬盘，一主一从
 };
 
-/* 硬盘结构 */
-struct disk {
-    char name[8];                       // 本硬盘的名称，如sda等
-    struct ide_channel* my_channel;     // 此块硬盘归属于哪个ide通道
-    uint8_t dev_no;                     // 本硬盘是主0还是从1
-    struct partition prim_parts[4];     // 主分区顶多是4个
-    struct partition logic_parts[8];    // 逻辑分区数量上限, 本操作系统设置为8个
-};
+void ide_init();
 
 #endif
