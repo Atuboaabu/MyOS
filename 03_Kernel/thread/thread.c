@@ -140,6 +140,16 @@ void init_thread_pcb(struct PCB_INFO* thread_pcb, char* name, int prio) {
     thread_pcb->ticks = prio;
     thread_pcb->elapsed_ticks = 0;
     thread_pcb->pgdir = NULL;
+    /* 文件描述符数组初始化 */
+    thread_pcb->fd_table[0] = 0;  // 标准输入
+    thread_pcb->fd_table[1] = 1;  // 标准输出
+    thread_pcb->fd_table[2] = 2;  // 标准错误
+    thread_pcb->fd_table[3] = -1;
+    thread_pcb->fd_table[4] = -1;
+    thread_pcb->fd_table[5] = -1;
+    thread_pcb->fd_table[6] = -1;
+    thread_pcb->fd_table[7] = -1;
+
     thread_pcb->stack_magic = 0x19870916;  // 自定义的魔数
 }
 /* 由 thread_func 去执行 start_routine(arg) */

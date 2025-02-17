@@ -9,6 +9,9 @@
 typedef void thread_func(void*);
 typedef uint16_t pid_t;
 
+/* 单进程最大文件数 */
+#define MAX_FILE_NUM (8)
+
 /* 进程、线程状态枚举 */
 enum TASK_STATUS {
     TASK_RUNNING,
@@ -75,6 +78,7 @@ struct PCB_INFO {
     uint32_t* pgdir;                      // 进程自己页表的虚拟地址
     struct virtual_addr_pool user_virtual_addr;  // 用户进程的虚拟地址
     struct mem_block_pool user_memblock_pools[MEMORY_POOL_COUNT];  // 用户进程的堆内存池
+    int32_t fd_table[MAX_FILE_NUM];       // 打开的文件描述符数组
     uint32_t stack_magic;                 // 用这串数字做栈的边界标记,用于检测栈的溢出
 };
 

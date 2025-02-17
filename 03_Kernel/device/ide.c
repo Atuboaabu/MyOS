@@ -73,7 +73,7 @@ static uint8_t s_primePartIndex = 0;
 /* 磁盘逻辑分区表索引 */
 static uint8_t s_logicPartIndex = 0;
 /* 磁盘分区队列 */
-static struct list s_partitionList;
+struct list g_partitionList;
 /* 2个ide通道 */
 struct ide_channel g_ideChannelArray[2];
 /* ide通道数 */
@@ -301,7 +301,7 @@ static void partition_scan(struct disk* hd, uint32_t ext_lba) {
                 hd->prim_parts[s_primePartIndex].start_lba = ext_lba + p->start_lba;
                 hd->prim_parts[s_primePartIndex].sec_cnt = p->sec_cnt;
                 hd->prim_parts[s_primePartIndex].my_disk = hd;
-                list_append(&s_partitionList, &hd->prim_parts[s_primePartIndex].part_tag);
+                list_append(&g_partitionList, &hd->prim_parts[s_primePartIndex].part_tag);
                 sprintf(hd->prim_parts[s_primePartIndex].name, "%s%d", hd->name, s_primePartIndex + 1);
                 s_primePartIndex++;
                 ASSERT(s_primePartIndex < 4);  // 0,1,2,3
@@ -309,7 +309,7 @@ static void partition_scan(struct disk* hd, uint32_t ext_lba) {
                 hd->logic_parts[s_logicPartIndex].start_lba = ext_lba + p->start_lba;
                 hd->logic_parts[s_logicPartIndex].sec_cnt = p->sec_cnt;
                 hd->logic_parts[s_logicPartIndex].my_disk = hd;
-                list_append(&s_partitionList, &hd->logic_parts[s_logicPartIndex].part_tag);
+                list_append(&g_partitionList, &hd->logic_parts[s_logicPartIndex].part_tag);
                 sprintf(hd->logic_parts[s_logicPartIndex].name, "%s%d", hd->name, s_logicPartIndex + 5);	 // 逻辑分区数字是从5开始,主分区是1～4.
                 s_logicPartIndex++;
                 if (s_logicPartIndex >= 8)  // 只支持8个逻辑分区,避免数组越界
@@ -352,7 +352,7 @@ void ide_init() {
     printk("ide_init start\n");
     uint8_t hd_cnt = *((uint8_t*)(0x475));  // 获取硬盘的数量
     ASSERT(hd_cnt > 0);
-    list_init(&s_partitionList);
+    list_init(&g_partitionList);
     g_ChannelCount = (hd_cnt + 2 - 1) / 2;  // 一个ide通道上有两个硬盘,根据硬盘数量反推有几个ide通道
     uint8_t channel_no = 0;
     uint8_t dev_no = 0;
@@ -404,6 +404,6 @@ void ide_init() {
 
     printk("\n   all partition info\n");
     /* 打印所有分区信息 */
-    list_traversal(&s_partitionList, print_partition_info, (int)NULL);
+    list_traversal(&g_partitionList, print_partition_info, (int)NULL);
     printk("ide_init done\n");
 }
