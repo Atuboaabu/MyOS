@@ -138,6 +138,7 @@ void file_system_init() {
     }
 
     printk("searching filesystem......\n");
+    printk("g_ChannelCount = %d, filesystem......\n", g_ChannelCount);
     while (channel_no < g_ChannelCount) {
         dev_no = 0;
         while(dev_no < 2) {

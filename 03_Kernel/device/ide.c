@@ -353,7 +353,7 @@ void ide_init() {
     uint8_t hd_cnt = *((uint8_t*)(0x475));  // 获取硬盘的数量
     ASSERT(hd_cnt > 0);
     list_init(&s_partitionList);
-    uint8_t g_ChannelCount = (hd_cnt + 2 - 1) / 2;  // 一个ide通道上有两个硬盘,根据硬盘数量反推有几个ide通道
+    g_ChannelCount = (hd_cnt + 2 - 1) / 2;  // 一个ide通道上有两个硬盘,根据硬盘数量反推有几个ide通道
     uint8_t channel_no = 0;
     uint8_t dev_no = 0;
     struct ide_channel* channel;

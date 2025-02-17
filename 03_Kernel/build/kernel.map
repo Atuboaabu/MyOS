@@ -165,7 +165,7 @@ LOAD build/fs.o
 .plt.sec
  *(.plt.sec)
 
-.text           0x00000000c0001500     0x4d6b
+.text           0x00000000c0001500     0x4d8b
  *(.text.unlikely .text.*_unlikely .text.unlikely.*)
  *(.text.exit .text.exit.*)
  *(.text.startup .text.startup.*)
@@ -302,13 +302,13 @@ LOAD build/fs.o
                 0x00000000c0004e8e                printf
  .text          0x00000000c0004ee9       0x5c build/stdio_kernel.o
                 0x00000000c0004ee9                printk
- .text          0x00000000c0004f45      0xd43 build/ide.o
+ .text          0x00000000c0004f45      0xd48 build/ide.o
                 0x00000000c0005463                ide_write
                 0x00000000c000559c                ide_read
                 0x00000000c00059a6                hd_interrupt_handler
                 0x00000000c0005a81                ide_init
- .text          0x00000000c0005c88      0x5e3 build/fs.o
-                0x00000000c00060d4                file_system_init
+ .text          0x00000000c0005c8d      0x5fe build/fs.o
+                0x00000000c00060d9                file_system_init
  *(.gnu.warning)
 
 .fini
@@ -317,33 +317,33 @@ LOAD build/fs.o
                 [!provide]                        PROVIDE (_etext = .)
                 [!provide]                        PROVIDE (etext = .)
 
-.rodata         0x00000000c000626c      0xcd1
+.rodata         0x00000000c000628c      0xcf9
  *(.rodata .rodata.* .gnu.linkonce.r.*)
- .rodata        0x00000000c000626c       0x56 build/main.o
- *fill*         0x00000000c00062c2        0x2 
- .rodata        0x00000000c00062c4       0xf4 build/interrupt.o
- .rodata        0x00000000c00063b8       0x5a build/timer.o
- .rodata        0x00000000c0006412       0x32 build/debug.o
- .rodata        0x00000000c0006444       0x6b build/string.o
- *fill*         0x00000000c00064af        0x1 
- .rodata        0x00000000c00064b0       0x83 build/bitmap.o
- *fill*         0x00000000c0006533        0x1 
- .rodata        0x00000000c0006534      0x281 build/memory.o
- *fill*         0x00000000c00067b5        0x3 
- .rodata        0x00000000c00067b8      0x242 build/thread.o
- *fill*         0x00000000c00069fa        0x2 
- .rodata        0x00000000c00069fc       0x2a build/semaphore.o
- *fill*         0x00000000c0006a26        0x2 
- .rodata        0x00000000c0006a28       0x2d build/condition_variable.o
- .rodata        0x00000000c0006a55       0x39 build/keyboard.o
- .rodata        0x00000000c0006a8e       0x21 build/tss.o
- *fill*         0x00000000c0006aaf        0x1 
- .rodata        0x00000000c0006ab0       0xb8 build/process.o
- .rodata        0x00000000c0006b68       0x27 build/syscall.o
- *fill*         0x00000000c0006b8f        0x1 
- .rodata        0x00000000c0006b90      0x1d5 build/ide.o
- *fill*         0x00000000c0006d65        0x3 
- .rodata        0x00000000c0006d68      0x1d5 build/fs.o
+ .rodata        0x00000000c000628c       0x56 build/main.o
+ *fill*         0x00000000c00062e2        0x2 
+ .rodata        0x00000000c00062e4       0xf4 build/interrupt.o
+ .rodata        0x00000000c00063d8       0x5a build/timer.o
+ .rodata        0x00000000c0006432       0x32 build/debug.o
+ .rodata        0x00000000c0006464       0x6b build/string.o
+ *fill*         0x00000000c00064cf        0x1 
+ .rodata        0x00000000c00064d0       0x83 build/bitmap.o
+ *fill*         0x00000000c0006553        0x1 
+ .rodata        0x00000000c0006554      0x281 build/memory.o
+ *fill*         0x00000000c00067d5        0x3 
+ .rodata        0x00000000c00067d8      0x242 build/thread.o
+ *fill*         0x00000000c0006a1a        0x2 
+ .rodata        0x00000000c0006a1c       0x2a build/semaphore.o
+ *fill*         0x00000000c0006a46        0x2 
+ .rodata        0x00000000c0006a48       0x2d build/condition_variable.o
+ .rodata        0x00000000c0006a75       0x39 build/keyboard.o
+ .rodata        0x00000000c0006aae       0x21 build/tss.o
+ *fill*         0x00000000c0006acf        0x1 
+ .rodata        0x00000000c0006ad0       0xb8 build/process.o
+ .rodata        0x00000000c0006b88       0x27 build/syscall.o
+ *fill*         0x00000000c0006baf        0x1 
+ .rodata        0x00000000c0006bb0      0x1d5 build/ide.o
+ *fill*         0x00000000c0006d85        0x3 
+ .rodata        0x00000000c0006d88      0x1fd build/fs.o
 
 .rodata1
  *(.rodata1)
@@ -352,50 +352,50 @@ LOAD build/fs.o
  *(.eh_frame_hdr)
  *(.eh_frame_entry .eh_frame_entry.*)
 
-.eh_frame       0x00000000c0006f40     0x1120
+.eh_frame       0x00000000c0006f88     0x1120
  *(.eh_frame)
- .eh_frame      0x00000000c0006f40       0x74 build/main.o
- .eh_frame      0x00000000c0006fb4      0x184 build/interrupt.o
+ .eh_frame      0x00000000c0006f88       0x74 build/main.o
+ .eh_frame      0x00000000c0006ffc      0x184 build/interrupt.o
                                         0x19c (size before relaxing)
- .eh_frame      0x00000000c0007138       0xcc build/timer.o
+ .eh_frame      0x00000000c0007180       0xcc build/timer.o
                                          0xe4 (size before relaxing)
- .eh_frame      0x00000000c0007204       0x1c build/debug.o
+ .eh_frame      0x00000000c000724c       0x1c build/debug.o
                                          0x34 (size before relaxing)
- .eh_frame      0x00000000c0007220       0x80 build/string.o
+ .eh_frame      0x00000000c0007268       0x80 build/string.o
                                          0x98 (size before relaxing)
- .eh_frame      0x00000000c00072a0       0x88 build/bitmap.o
+ .eh_frame      0x00000000c00072e8       0x88 build/bitmap.o
                                          0xa0 (size before relaxing)
- .eh_frame      0x00000000c0007328      0x2a0 build/memory.o
+ .eh_frame      0x00000000c0007370      0x2a0 build/memory.o
                                         0x2b8 (size before relaxing)
- .eh_frame      0x00000000c00075c8      0x140 build/list.o
+ .eh_frame      0x00000000c0007610      0x140 build/list.o
                                         0x158 (size before relaxing)
- .eh_frame      0x00000000c0007708      0x1bc build/thread.o
+ .eh_frame      0x00000000c0007750      0x1bc build/thread.o
                                         0x1d4 (size before relaxing)
- .eh_frame      0x00000000c00078c4       0x60 build/semaphore.o
+ .eh_frame      0x00000000c000790c       0x60 build/semaphore.o
                                          0x78 (size before relaxing)
- .eh_frame      0x00000000c0007924       0x60 build/lock.o
+ .eh_frame      0x00000000c000796c       0x60 build/lock.o
                                          0x78 (size before relaxing)
- .eh_frame      0x00000000c0007984       0x80 build/condition_variable.o
+ .eh_frame      0x00000000c00079cc       0x80 build/condition_variable.o
                                          0x98 (size before relaxing)
- .eh_frame      0x00000000c0007a04       0x80 build/console.o
+ .eh_frame      0x00000000c0007a4c       0x80 build/console.o
                                          0x98 (size before relaxing)
- .eh_frame      0x00000000c0007a84       0x60 build/keyboard.o
+ .eh_frame      0x00000000c0007acc       0x60 build/keyboard.o
                                          0x78 (size before relaxing)
- .eh_frame      0x00000000c0007ae4       0x60 build/ioqueue.o
+ .eh_frame      0x00000000c0007b2c       0x60 build/ioqueue.o
                                          0x78 (size before relaxing)
- .eh_frame      0x00000000c0007b44       0x40 build/tss.o
+ .eh_frame      0x00000000c0007b8c       0x40 build/tss.o
                                          0x58 (size before relaxing)
- .eh_frame      0x00000000c0007b84       0xc0 build/process.o
+ .eh_frame      0x00000000c0007bcc       0xc0 build/process.o
                                          0xd8 (size before relaxing)
- .eh_frame      0x00000000c0007c44       0xcc build/syscall.o
+ .eh_frame      0x00000000c0007c8c       0xcc build/syscall.o
                                          0xe4 (size before relaxing)
- .eh_frame      0x00000000c0007d10       0x88 build/stdio.o
+ .eh_frame      0x00000000c0007d58       0x88 build/stdio.o
                                          0xa0 (size before relaxing)
- .eh_frame      0x00000000c0007d98       0x24 build/stdio_kernel.o
+ .eh_frame      0x00000000c0007de0       0x24 build/stdio_kernel.o
                                          0x3c (size before relaxing)
- .eh_frame      0x00000000c0007dbc      0x254 build/ide.o
+ .eh_frame      0x00000000c0007e04      0x254 build/ide.o
                                         0x26c (size before relaxing)
- .eh_frame      0x00000000c0008010       0x50 build/fs.o
+ .eh_frame      0x00000000c0008058       0x50 build/fs.o
                                          0x68 (size before relaxing)
  *(.eh_frame.*)
 
