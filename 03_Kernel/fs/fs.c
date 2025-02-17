@@ -10,7 +10,9 @@
 extern struct ide_channel g_ideChannelArray[2];
 extern uint8_t g_ChannelCount;
 
-/* 格式化分区, 也就是初始化分区的元信息, 创建文件系统 */
+/* 格式化分区, 也就是初始化分区的元信息, 创建文件系统 
+** 分区结构：| 引导块 | 超级块 | 空闲块位图 | inode 位图 | inode 数组 | 根目录 | 空闲块区域 |
+*/
 static void partition_format(struct partition* part) {
     /* 为方便实现, 一个块大小是一扇区 */
     uint32_t boot_sector_sects = 1;	  
@@ -25,7 +27,7 @@ static void partition_format(struct partition* part) {
     block_bitmap_sects = (free_sects + BITS_PER_SECTOR - 1) / BITS_PER_SECTOR;
     /* block_bitmap_bit_len 是位图中位的长度, 也是可用块的数量 */
     uint32_t block_bitmap_bit_len = free_sects - block_bitmap_sects; 
-    block_bitmap_sects = block_bitmap_bit_len + BITS_PER_SECTOR - 1 / BITS_PER_SECTOR;
+    block_bitmap_sects = (block_bitmap_bit_len + BITS_PER_SECTOR - 1) / BITS_PER_SECTOR;
     /*********************************************************/
 
     /* 超级块初始化 */
