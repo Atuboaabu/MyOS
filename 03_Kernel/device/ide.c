@@ -75,7 +75,9 @@ static uint8_t s_logicPartIndex = 0;
 /* 磁盘分区队列 */
 static struct list s_partitionList;
 /* 2个ide通道 */
-static struct ide_channel s_ideChannelArray[2];
+struct ide_channel g_ideChannelArray[2];
+/* ide通道数 */
+uint8_t g_ChannelCount;
 
 /* 选择读写的硬盘 */
 static void select_disk(struct disk* hd) {
@@ -93,15 +95,12 @@ static void select_disk(struct disk* hd) {
 static void select_sector(struct disk* hd, uint32_t lba, uint8_t sec_cnt) {
     // ASSERT(lba <= max_lba);
     struct ide_channel* channel = hd->my_channel;
-
     /* 写入要读写的扇区数*/
     outb(reg_sector_cnt(channel), sec_cnt);  // 如果sec_cnt为0,则表示写入256个扇区
-
     /* 写入lba地址(即扇区号) */
     outb(reg_lba_low(channel),  lba);        // lba地址的低8位
     outb(reg_lba_mid(channel),  lba >> 8);   // lba地址的 8~15 位
     outb(reg_lba_high(channel), lba >> 16);  // lba地址的 16 ~ 23 位
-
     /* 因为 lba 地址的 24~27 位要存储在 device 寄存器的 0～3 位
        无法单独写入这4位，所以在此处把 device 寄存器再重新写入一次 */
     struct register_device device = { 0 };
@@ -213,10 +212,8 @@ void ide_write(struct disk* hd, uint32_t lba, void* buf, uint32_t sec_cnt) {
         return;
     }
     lock_acquire (&hd->my_channel->lock);
-
     /* 1 先选择操作的硬盘 */
     select_disk(hd);
-
     uint32_t secs_op;        // 每次操作的扇区数
     uint32_t secs_done = 0;  // 已完成的扇区数
     while(secs_done < sec_cnt) {
@@ -225,23 +222,18 @@ void ide_write(struct disk* hd, uint32_t lba, void* buf, uint32_t sec_cnt) {
         } else {
             secs_op = sec_cnt - secs_done;
         }
-
         /* 2 写入待写入的扇区数和起始扇区号 */
         select_sector(hd, lba + secs_done, secs_op);
-
         /* 3 执行的命令写入reg_cmd寄存器 */
         cmd_out(hd->my_channel, CMD_WRITE_SECTOR);	      // 准备开始写数据
-
         /* 4 检测硬盘状态是否可读 */
         if (disk_drp_state(hd) == false) {
             char error[64];
             sprintf(error, "%s write sector %d failed!!!!!!\n", hd->name, lba);
             PANIC(error);
         }
-
         /* 5 将数据写入硬盘 */
         write_to_sector(hd, (void*)((uint32_t)buf + secs_done * 512), secs_op);
-
         /* 在硬盘响应期间阻塞自己 */
         semaphore_P(&hd->my_channel->disk_done);
         secs_done += secs_op;
@@ -254,9 +246,7 @@ void ide_write(struct disk* hd, uint32_t lba, void* buf, uint32_t sec_cnt) {
 void ide_read(struct disk* hd, uint32_t lba, void* buf, uint32_t sec_cnt) {   // 此处的sec_cnt为32位大小
     // ASSERT(lba <= max_lba);
     ASSERT(sec_cnt > 0);
-
     lock_acquire(&hd->my_channel->lock);
-
     /* 1 先选择操作的硬盘 */
     select_disk(hd);
     uint32_t secs_op;		 // 每次操作的扇区数
@@ -267,17 +257,13 @@ void ide_read(struct disk* hd, uint32_t lba, void* buf, uint32_t sec_cnt) {   //
         } else {
             secs_op = sec_cnt - secs_done;
         }
-
         /* 2 写入待读入的扇区数和起始扇区号 */
         select_sector(hd, lba + secs_done, secs_op);
-
         /* 3 执行的命令写入reg_cmd寄存器 */
         cmd_out(hd->my_channel, CMD_READ_SECTOR);  // 准备开始读数据
-
         /* 在硬盘已经开始工作(开始在内部读数据或写数据)后才能阻塞自己，现在硬盘已经开始忙了，
            将自己阻塞，等待硬盘完成读操作后通过中断处理程序唤醒自己 */
         semaphore_P(&hd->my_channel->disk_done);
-
         /* 4 检测硬盘状态是否可读 */
         /* 醒来后开始执行下面代码*/
         if (disk_drp_state(hd) == false) {  // 若失败
@@ -285,7 +271,6 @@ void ide_read(struct disk* hd, uint32_t lba, void* buf, uint32_t sec_cnt) {   //
             sprintf(error, "%s read sector %d failed!!!!!!\n", hd->name, lba);
             PANIC(error);
         }
-
         /* 5 把数据从硬盘的缓冲区中读出 */
         read_from_sector(hd, (void*)((uint32_t)buf + secs_done * 512), secs_op);
         secs_done += secs_op;
@@ -342,7 +327,7 @@ void hd_interrupt_handler(uint8_t irq_no) {
         return;
     }
     uint8_t channel_no = irq_no - 0x2e;
-    struct ide_channel* channel = &s_ideChannelArray[channel_no];
+    struct ide_channel* channel = &g_ideChannelArray[channel_no];
     ASSERT(channel->irq_no == irq_no);
     /* 不必担心此中断是否对应的是这一次的expecting_intr,
     * 每次读写硬盘时会申请锁,从而保证了同步一致性 */
@@ -368,20 +353,20 @@ void ide_init() {
     uint8_t hd_cnt = *((uint8_t*)(0x475));  // 获取硬盘的数量
     ASSERT(hd_cnt > 0);
     list_init(&s_partitionList);
-    uint8_t channel_cnt = (hd_cnt + 2 - 1) / 2;  // 一个ide通道上有两个硬盘,根据硬盘数量反推有几个ide通道
+    uint8_t g_ChannelCount = (hd_cnt + 2 - 1) / 2;  // 一个ide通道上有两个硬盘,根据硬盘数量反推有几个ide通道
     uint8_t channel_no = 0;
     uint8_t dev_no = 0;
     struct ide_channel* channel;
 
     /* 处理每个通道上的硬盘 */
-    while (channel_no < channel_cnt) {
-        channel = &s_ideChannelArray[channel_no];
+    while (channel_no < g_ChannelCount) {
+        channel = &g_ideChannelArray[channel_no];
         sprintf(channel->name, "ide%d", channel_no);
 
         /* 为每个ide通道初始化端口基址及中断向量 */
         switch (channel_no) {
             case 0:
-                channel->port_base = 0x1f0;   // ide0通道的起始端口号是0x1f0
+                channel->port_base = 0x1F0;   // ide0通道的起始端口号是0x1f0
                 channel->irq_no = 0x20 + 14;  // 从片8259a上倒数第二的中断引脚,温盘,也就是ide0通道的的中断向量号
                 break;
             case 1:
@@ -396,8 +381,8 @@ void ide_init() {
         /* 初始化信号量为0, 目的是向硬盘控制器请求数据后, 硬盘驱动sema_down此信号量会阻塞线程,
            直到硬盘完成后通过发中断, 由中断处理程序将此信号量sema_up, 唤醒线程。 */
         semaphore_init(&(channel->disk_done), 0);
-
-        register_interrupt_handle(channel->irq_no, hd_interrupt_handler);  // 注册中断处理 handle
+        /* 注册中断处理 handle */
+        register_interrupt_handle(channel->irq_no, hd_interrupt_handler);
 
         /* 分别获取通道中两个硬盘的参数及分区信息 */
         while (dev_no < 2) {

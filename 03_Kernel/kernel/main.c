@@ -11,6 +11,7 @@
 #include "syscall.h"
 #include "stdio.h"
 #include "ide.h"
+#include "fs.h"
 
 extern struct ioqueue g_keyboardIOQueue;
 void thread_A(void *arg);
@@ -28,6 +29,7 @@ int main(void) {
     tss_init();
     syscall_init();
     ide_init();
+    file_system_init();
 
     // thread_create("ThreadA", 20, thread_A, NULL);
     // thread_create("process_A", 20, process_A, NULL);

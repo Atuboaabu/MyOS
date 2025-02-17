@@ -1,7 +1,7 @@
 
 CC = gcc
 CFLAGS = -m32 -Wall -c -ffreestanding -fno-pic
-DIRS = lib/ lib/kernel/ lib/usr/ lib/kernel/list/ kernel/ device/ thread/ thread/semaphore/ thread/lock/ thread/condition_variable/ usrprog/
+DIRS = lib/ lib/kernel/ lib/usr/ lib/kernel/list/ kernel/ device/ thread/ thread/semaphore/ thread/lock/ thread/condition_variable/ usrprog/ fs/
 INCLUDES = $(addprefix -I, $(DIRS))
 BUILD_DIR = ./build
 OBJS = $(BUILD_DIR)/main.o $(BUILD_DIR)/interrupt.o $(BUILD_DIR)/timer.o \
@@ -11,7 +11,8 @@ OBJS = $(BUILD_DIR)/main.o $(BUILD_DIR)/interrupt.o $(BUILD_DIR)/timer.o \
 	   $(BUILD_DIR)/semaphore.o $(BUILD_DIR)/lock.o $(BUILD_DIR)/condition_variable.o \
 	   $(BUILD_DIR)/console.o $(BUILD_DIR)/keyboard.o $(BUILD_DIR)/ioqueue.o \
 	   $(BUILD_DIR)/tss.o $(BUILD_DIR)/process.o $(BUILD_DIR)/syscall.o \
-	   $(BUILD_DIR)/stdio.o $(BUILD_DIR)/stdio_kernel.o $(BUILD_DIR)/ide.o
+	   $(BUILD_DIR)/stdio.o $(BUILD_DIR)/stdio_kernel.o $(BUILD_DIR)/ide.o \
+	   $(BUILD_DIR)/fs.o
 ENTRY_POINT = 0xc0001500
 LD = ld
 LDFLAGS = -m elf_i386 -Ttext $(ENTRY_POINT) -e main -Map $(BUILD_DIR)/kernel.map
@@ -61,6 +62,8 @@ $(BUILD_DIR)/stdio.o: lib/stdio.c lib/stdio.h
 $(BUILD_DIR)/stdio_kernel.o: lib/kernel/stdio_kernel.c lib/kernel/stdio_kernel.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
 $(BUILD_DIR)/ide.o: device/ide.c device/ide.h
+	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
+$(BUILD_DIR)/fs.o: fs/fs.c fs/fs.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
 
 ######## 汇编文件编译 ########
