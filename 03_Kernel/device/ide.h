@@ -6,6 +6,7 @@
 #include "bitmap.h"
 #include "list.h"
 #include "lock.h"
+#include "super_block.h"
 
 /* 分区结构 */
 struct partition {
@@ -41,5 +42,9 @@ struct ide_channel {
 };
 
 void ide_init();
+/* 从硬盘读取sec_cnt个扇区到buf */
+void ide_read(struct disk* hd, uint32_t lba, void* buf, uint32_t sec_cnt);
+/* 将buf中sec_cnt扇区数据写入硬盘 */
+void ide_write(struct disk* hd, uint32_t lba, void* buf, uint32_t sec_cnt);
 
 #endif

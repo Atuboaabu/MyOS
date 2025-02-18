@@ -28,12 +28,12 @@ char* strcpy(char* dst, const char* src) {
 }
 
 int8_t strcmp (const char* str1, const char* str2) {
-   ASSERT(str1 != NULL && str2 != NULL);
-   while (*str1 != 0 && *str1 == *str2) {
-      str1++;
-      str2++;
-   }
-   return *str1 < *str2 ? -1 : *str1 > *str2;
+    ASSERT(str1 != NULL && str2 != NULL);
+    while (*str1 != 0 && *str1 == *str2) {
+        str1++;
+        str2++;
+    }
+    return *str1 < *str2 ? -1 : *str1 > *str2;
 }
 
 uint32_t strlen(const char* str) {

@@ -183,6 +183,47 @@ static void partition_format(struct partition* part) {
     sys_free(buf);
 }
 
+/* 分配一个i结点, 返回i结点号 */
+int32_t fs_inode_bitmap_alloc(struct partition* part) {
+    int32_t bit_idx = bitmap_apply(&part->inode_bitmap, 1);
+    if (bit_idx == -1) {
+        return -1;
+    }
+    bitmap_set(&part->inode_bitmap, bit_idx, 1);
+    return bit_idx;
+}
+   
+/* 分配1个扇区, 返回其扇区地址 */
+int32_t fs_block_bitmap_alloc(struct partition* part) {
+    int32_t bit_idx = bitmap_apply(&part->block_bitmap, 1);
+    if (bit_idx == -1) {
+        return -1;
+    }
+    bitmap_set(&part->block_bitmap, bit_idx, 1);
+    return (part->sb->data_start_lba + bit_idx);
+}
+
+/* 将内存中 bitmap 第 bit_idx 位所在的 512 字节同步到硬盘 */
+void fs_bitmap_sync(struct partition* part, uint32_t bit_idx, enum partition_bitmap_type btmp_type) {
+    uint32_t off_sec = bit_idx / 4096;         // 本i结点索引相对于位图的扇区偏移量
+    uint32_t off_size = off_sec * BLOCK_SIZE;  // 本i结点索引相对于位图的字节偏移量
+    uint32_t sec_lba;
+    uint8_t* bitmap_ptr;
+
+    /* 需要被同步到硬盘的位图只有inode_bitmap和block_bitmap */
+    switch (btmp_type) {
+        case PART_INODE_BITMAP:
+            sec_lba = part->sb->inode_bitmap_lba + off_sec;
+            bitmap_ptr = part->inode_bitmap.bits + off_size;
+            break;
+        case PART_BLOCK_BITMAP:
+            sec_lba = part->sb->block_bitmap_lba + off_sec;
+            bitmap_ptr = part->block_bitmap.bits + off_size;
+            break;
+    }
+    ide_write(part->my_disk, sec_lba, bitmap_ptr, 1);
+}
+
 /* 文件系统初始化 */
 void file_system_init() {
     uint8_t channel_no = 0;

@@ -21,6 +21,18 @@ enum file_type {
     FT_TYPE_MAX
 };
 
+/* 分区位图类型枚举 */
+enum partition_bitmap_type {
+   PART_INODE_BITMAP,  // inode位图
+   PART_BLOCK_BITMAP   // 块位图
+};
+
 void file_system_init(void);
+/* 将内存中 bitmap 第 bit_idx 位所在的 512 字节同步到硬盘 */
+void fs_bitmap_sync(struct partition* part, uint32_t bit_idx, enum partition_bitmap_type btmp_type);
+/* 分配一个i结点, 返回i结点号 */
+int32_t fs_inode_bitmap_alloc(struct partition* part);
+/* 分配一个扇区, 返回其扇区地址 */
+int32_t fs_block_bitmap_alloc(struct partition* part);
 
 #endif
