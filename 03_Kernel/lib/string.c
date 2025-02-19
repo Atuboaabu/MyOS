@@ -36,6 +36,41 @@ int8_t strcmp (const char* str1, const char* str2) {
     return *str1 < *str2 ? -1 : *str1 > *str2;
 }
 
+char* strcat(char* _dst, const char* _src) {
+    ASSERT(_dst != NULL && _src != NULL);
+    char* str = _dst;
+    while (*str++);  // 跳过 _dst前面的字符
+    --str;
+    while((*str++ = *_src++));
+    return _dst;
+}
+
+/* 从前往后查找字符串 str 中首次出现字符 ch 的地址 */
+char* strchr(const char* str, const char ch) {
+    ASSERT(str != NULL);
+    while (*str != 0) {
+        if (*str == ch) {
+            return (char*)str;
+        }
+        str++;
+    }
+    return NULL;
+}
+
+/* 从后往前查找字符串 str 中首次出现字符 ch 的地址 */
+char* strrchr(const char* str, const char ch) {
+    ASSERT(str != NULL);
+    const char* last_char = NULL;
+    while (*str != 0) {
+        if (*str == ch) {
+            last_char = str;
+        }
+        str++;
+    }
+    return (char*)last_char;
+}
+
+
 uint32_t strlen(const char* str) {
     ASSERT(str != NULL);
     const char* p = str;
