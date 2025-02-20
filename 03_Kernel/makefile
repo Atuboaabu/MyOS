@@ -1,7 +1,7 @@
 
 CC = gcc
 CFLAGS = -m32 -Wall -c -ffreestanding -fno-pic
-DIRS = lib/ lib/kernel/ lib/usr/ lib/kernel/list/ kernel/ device/ thread/ thread/semaphore/ thread/lock/ thread/condition_variable/ usrprog/ fs/
+DIRS = lib/ lib/kernel/ lib/usr/ lib/kernel/list/ kernel/ device/ thread/ thread/semaphore/ thread/lock/ thread/condition_variable/ usrprog/ fs/ shell/
 INCLUDES = $(addprefix -I, $(DIRS))
 BUILD_DIR = ./build
 OBJS = $(BUILD_DIR)/main.o $(BUILD_DIR)/interrupt.o $(BUILD_DIR)/timer.o \
@@ -13,7 +13,7 @@ OBJS = $(BUILD_DIR)/main.o $(BUILD_DIR)/interrupt.o $(BUILD_DIR)/timer.o \
 	   $(BUILD_DIR)/tss.o $(BUILD_DIR)/process.o $(BUILD_DIR)/syscall.o \
 	   $(BUILD_DIR)/stdio.o $(BUILD_DIR)/stdio_kernel.o $(BUILD_DIR)/ide.o \
 	   $(BUILD_DIR)/fs.o $(BUILD_DIR)/inode.o $(BUILD_DIR)/dir.o \
-	   $(BUILD_DIR)/file.o
+	   $(BUILD_DIR)/file.o $(BUILD_DIR)/shell.o
 ENTRY_POINT = 0xc0001500
 LD = ld
 LDFLAGS = -m elf_i386 -Ttext $(ENTRY_POINT) -e main -Map $(BUILD_DIR)/kernel.map
@@ -71,6 +71,8 @@ $(BUILD_DIR)/inode.o: fs/inode.c fs/inode.h
 $(BUILD_DIR)/dir.o: fs/dir.c fs/dir.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
 $(BUILD_DIR)/file.o: fs/file.c fs/file.h
+	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
+$(BUILD_DIR)/shell.o: shell/shell.c shell/shell.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
 
 ######## 汇编文件编译 ########

@@ -12,6 +12,7 @@
 #include "stdio.h"
 #include "ide.h"
 #include "fs.h"
+#include "shell.h"
 
 extern struct ioqueue g_keyboardIOQueue;
 void thread_A(void *arg);
@@ -33,7 +34,8 @@ int main(void) {
 
     // thread_create("ThreadA", 20, thread_A, NULL);
     // thread_create("process_A", 20, process_A, NULL);
-    process_execute(process_A, "process_A");
+    // process_execute(process_A, "process_A");
+    process_execute(shell_process, "process_A");
     interrupt_enable();
     while(1) {
         // console_put_str("Main  ");
@@ -42,7 +44,7 @@ int main(void) {
 }
 
 void thread_A(void *arg) {
-    sys_write("thread_A \n");
+    // sys_write("thread_A \n");
     while(1) { 
     }
 }

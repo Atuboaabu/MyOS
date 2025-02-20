@@ -45,7 +45,6 @@ char* strcat(char* _dst, const char* _src) {
     return _dst;
 }
 
-/* 从前往后查找字符串 str 中首次出现字符 ch 的地址 */
 char* strchr(const char* str, const char ch) {
     ASSERT(str != NULL);
     while (*str != 0) {
@@ -57,7 +56,6 @@ char* strchr(const char* str, const char ch) {
     return NULL;
 }
 
-/* 从后往前查找字符串 str 中首次出现字符 ch 的地址 */
 char* strrchr(const char* str, const char ch) {
     ASSERT(str != NULL);
     const char* last_char = NULL;
@@ -69,7 +67,6 @@ char* strrchr(const char* str, const char ch) {
     }
     return (char*)last_char;
 }
-
 
 uint32_t strlen(const char* str) {
     ASSERT(str != NULL);

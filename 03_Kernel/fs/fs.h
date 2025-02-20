@@ -51,5 +51,15 @@ void fs_bitmap_sync(struct partition* part, uint32_t bit_idx, enum partition_bit
 int32_t fs_inode_bitmap_alloc(struct partition* part);
 /* 分配一个扇区, 返回其扇区地址 */
 int32_t fs_block_bitmap_alloc(struct partition* part);
+/* 打开或创建文件成功后, 返回文件描述符, 否则返回-1 */
+int32_t sys_open(const char* pathname, uint8_t flags);
+/* 关闭文件描述符fd指向的文件, 成功返回0, 否则返回-1 */
+int32_t sys_close(int32_t fd);
+/* 将buf中连续 count 个字节写入文件描述符fd, 成功则返回写入的字节数, 失败返回-1 */
+int32_t sys_write(int32_t fd, const void* buf, uint32_t count);
+/* 从文件描述符fd指向的文件中读取count个字节到buf, 若成功则返回读出的字节数, 到文件尾则返回-1 */
+int32_t sys_read(int32_t fd, void* buf, uint32_t count);
+/* 向屏幕输出一个字符 */
+void sys_putchar(char c);
 
 #endif

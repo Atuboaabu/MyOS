@@ -8,14 +8,40 @@
 #include "debug.h"
 #include "string.h"
 #include "list.h"
+#include "file.h"
+#include "thread.h"
+#include "ioqueue.h"
+#include "console.h"
 
 extern struct ide_channel g_ideChannelArray[2];
 extern uint8_t g_ChannelCount;
 extern struct list g_partitionList;
 extern struct dir g_rootDir;
+extern struct file g_fielTable[MAX_FILES];
+extern struct ioqueue g_keyboardIOQueue;
 
 /* 当前挂载的分区 */
 struct partition* g_curPartion;
+
+/* 分配一个i结点, 返回i结点号 */
+int32_t fs_inode_bitmap_alloc(struct partition* part) {
+    int32_t bit_idx = bitmap_apply(&part->inode_bitmap, 1);
+    if (bit_idx == -1) {
+        return -1;
+    }
+    bitmap_set(&part->inode_bitmap, bit_idx, 1);
+    return bit_idx;
+}
+   
+/* 分配1个扇区, 返回其扇区地址 */
+int32_t fs_block_bitmap_alloc(struct partition* part) {
+    int32_t bit_idx = bitmap_apply(&part->block_bitmap, 1);
+    if (bit_idx == -1) {
+        return -1;
+    }
+    bitmap_set(&part->block_bitmap, bit_idx, 1);
+    return (part->sb->data_start_lba + bit_idx);
+}
 
 /* 在分区链表中找到名指定名称的分区, 并将其指针赋值给cur_part */
 static bool mount_partition(struct list_elem* pelem, int arg) {
@@ -339,24 +365,73 @@ int32_t sys_open(const char* pathname, uint8_t flags) {
     return fd;
 }
 
-/* 分配一个i结点, 返回i结点号 */
-int32_t fs_inode_bitmap_alloc(struct partition* part) {
-    int32_t bit_idx = bitmap_apply(&part->inode_bitmap, 1);
-    if (bit_idx == -1) {
-        return -1;
-    }
-    bitmap_set(&part->inode_bitmap, bit_idx, 1);
-    return bit_idx;
+/* 将文件描述符转化为文件表的下标 */
+static uint32_t localfd_to_globalfd(uint32_t local_fd) {
+    struct PCB_INFO* cur = get_curthread_pcb();
+    int32_t global_fd = cur->fd_table[local_fd];  
+    ASSERT(global_fd >= 0 && global_fd < MAX_FILES);
+    return (uint32_t)global_fd;
 }
-   
-/* 分配1个扇区, 返回其扇区地址 */
-int32_t fs_block_bitmap_alloc(struct partition* part) {
-    int32_t bit_idx = bitmap_apply(&part->block_bitmap, 1);
-    if (bit_idx == -1) {
+
+/* 关闭文件描述符fd指向的文件, 成功返回0, 否则返回-1 */
+int32_t sys_close(int32_t fd) {
+    int32_t ret = -1;
+    if (fd > 2) {
+        uint32_t global_fd = localfd_to_globalfd(fd);
+        ret = file_close(&g_fielTable[global_fd]);
+        get_curthread_pcb()->fd_table[fd] = -1; // 使该文件描述符位可用
+    }
+    return ret;
+ }
+
+/* 将buf中连续 count 个字节写入文件描述符fd, 成功则返回写入的字节数, 失败返回-1 */
+int32_t sys_write(int32_t fd, const void* buf, uint32_t count) {
+    if (fd < 0) {
+        printk("sys_write: fd error\n");
         return -1;
     }
-    bitmap_set(&part->block_bitmap, bit_idx, 1);
-    return (part->sb->data_start_lba + bit_idx);
+    if (fd == stdout) {  
+        char tmp_buf[1024] = {0};
+        memcpy(tmp_buf, buf, count);
+        console_put_str(tmp_buf);
+        return count;
+    }
+    uint32_t global_fd = localfd_to_globalfd(fd);
+    struct file* wr_file = &g_fielTable[global_fd];
+    if (wr_file->fd_flag & O_WRONLY || wr_file->fd_flag & O_RDWR) {
+        uint32_t bytes_written  = file_write(wr_file, buf, count);
+        return bytes_written;
+    } else {
+        console_put_str("sys_write: not allowed to write file without flag O_RDWR or O_WRONLY\n");
+        return -1;
+    }
+}
+ 
+/* 从文件描述符fd指向的文件中读取count个字节到buf, 若成功则返回读出的字节数, 到文件尾则返回-1 */
+int32_t sys_read(int32_t fd, void* buf, uint32_t count) {
+    ASSERT(buf != NULL);
+    int32_t ret = -1;
+    if (fd < 0 || fd == stdout || fd == stderr) {
+        printk("sys_read: fd error\n");
+    } else if (fd == stdin) {
+        char* buffer = buf;
+        uint32_t bytes_read = 0;
+        while (bytes_read < count) {
+            *buffer = ioqueue_getchar(&g_keyboardIOQueue);
+            bytes_read++;
+            buffer++;
+        }
+        ret = (bytes_read == 0 ? -1 : (int32_t)bytes_read);
+    } else {
+       uint32_t global_fd = localfd_to_globalfd(fd);
+       ret = file_read(&g_fielTable[global_fd], buf, count);   
+    }
+    return ret;
+ }
+
+/* 向屏幕输出一个字符 */
+void sys_putchar(char c) {
+    console_put_char(c);
 }
 
 /* 将内存中 bitmap 第 bit_idx 位所在的 512 字节同步到硬盘 */
@@ -438,4 +513,10 @@ void file_system_init() {
     char default_part[8] = "sdb1";
     /* 挂载分区 */
     list_traversal(&g_partitionList, mount_partition, (int)default_part);
+    /* 打开当前分区的根目录 */
+    open_root_dir(g_curPartion);
+    /* 初始化文件列表 */
+    for (int i = 0; i < MAX_FILES; i++) {
+        g_fielTable[i].fd_inode = NULL;
+    }
 }
