@@ -4,6 +4,8 @@
 #include "stdio.h"
 #include "print.h"
 #include "string.h"
+#include "buildin_cmd.h"
+#include "fs.h"
 
 /* 最大支持的命令长度 */
 #define CMD_MAX_LEN (128)
@@ -11,7 +13,9 @@
 #define ARG_MAX_NUM (16)
 
 /* 当前目录缓存 */
-char g_cwdCache[64] = {0};
+char g_cwdCache[MAX_PATH_LEN] = { 0 };
+/* 最终路径 */
+char g_finalPath[MAX_PATH_LEN] = { 0 };
 /* 命令缓存buf */
 static char s_cmdLine[CMD_MAX_LEN] = { 0 };
 
@@ -90,7 +94,7 @@ static int32_t cmd_parse(char* cmd_str, char** argv, char token) {
 /* 执行命令 */
 static void cmd_execute(uint32_t argc, char** argv) {
     if (strcmp(argv[0], "ls") == 0) {
-
+        buildin_ls(argc, argv);
     }
 }
 
@@ -111,9 +115,10 @@ void shell_process(void) {
         char* cmd_ptr = s_cmdLine;
         argc = cmd_parse(cmd_ptr, argv, ' ');
         if (argc != -1) {
-            for (int i = 0; i < argc; i++) {
-                printf("%s\n", argv[i]);
-            }
+            // for (int i = 0; i < argc; i++) {
+            //     printf("%s\n", argv[i]);
+            // }
+            cmd_execute(argc, argv);
         }
     }
     panic("my_shell: should not be here");
