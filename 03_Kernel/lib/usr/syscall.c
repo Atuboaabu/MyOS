@@ -22,6 +22,13 @@ void syscall_init() {
     g_Syscall_Table[SYS_FREE]  = sys_free;
     g_Syscall_Table[SYS_PUTCHAR]  = sys_putchar;
     g_Syscall_Table[SYS_CLEAR]  = cls_screen;
+    g_Syscall_Table[SYS_GETCWD]  = sys_getcwd;
+    g_Syscall_Table[SYS_MKDIR]  = sys_mkdir;
+    g_Syscall_Table[SYS_STAT]  = sys_stat;
+    g_Syscall_Table[SYS_OPENDIR]  = sys_opendir;
+    g_Syscall_Table[SYS_READDIR]  = sys_readdir;
+    g_Syscall_Table[SYS_REWINDDIR]  = sys_rewinddir;
+    g_Syscall_Table[SYS_CLOSEDIR]  = sys_closedir;
     put_str("syscall_init done\n");
 }
 
@@ -106,4 +113,39 @@ void* malloc(uint32_t size) {
 /* 释放 ptr 指向的内存 */
 void free(void* ptr) {
     _syscall1(SYS_FREE, ptr);
+}
+
+/* 获取当前工作目录 */
+char* getcwd() {
+    return _syscall0(SYS_GETCWD);
+}
+
+/* 创建目录 */
+int32_t mkdir(const char* pathname) {
+    return _syscall1(SYS_MKDIR, pathname);
+}
+
+/* 获取文件属性信息 */
+int32_t stat(const char* pathname, struct stat_info* buf) {
+    return _syscall2(SYS_STAT, pathname, buf);
+}
+
+/* 打开目录：成功后返回目录指针, 失败返回 NULL */
+struct dir* opendir(const char* name) {
+    return _syscall1(SYS_OPENDIR, name);
+}
+
+/* 读取目录 dir 的1个目录项: 成功后返回其目录项地址, 到目录尾时或出错时返回 NULL */
+struct dir_entry* readdir(struct dir* dir) {
+    return _syscall1(SYS_READDIR, dir);
+}
+
+/* 把目录dir的指针dir_pos置0 */
+void rewinddir(struct dir* dir) {
+    _syscall1(SYS_REWINDDIR, dir);
+}
+
+/* 关闭目录 dir: 成功返回 0, 失败返回-1 */
+int32_t closedir(struct dir* dir) {
+    return _syscall1(SYS_CLOSEDIR, dir);
 }

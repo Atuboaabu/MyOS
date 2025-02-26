@@ -60,7 +60,7 @@ bool search_dir_entry(struct partition* part, struct dir* pdir, const char* name
         /* 遍历扇区中所有目录项 */
         uint32_t dir_entry_idx = 0;
         while (dir_entry_idx < dir_entry_cnt) {
-            if (!strcmp(p_de->filename, name)) {
+            if (strcmp(p_de->filename, name) == 0) {
                 memcpy(dir_e, p_de, dir_entry_size);
                 sys_free(buf);
                 sys_free(all_blocks);

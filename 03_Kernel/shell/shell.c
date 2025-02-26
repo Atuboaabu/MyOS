@@ -95,6 +95,10 @@ static int32_t cmd_parse(char* cmd_str, char** argv, char token) {
 static void cmd_execute(uint32_t argc, char** argv) {
     if (strcmp(argv[0], "ls") == 0) {
         buildin_ls(argc, argv);
+    } else if (strcmp(argv[0], "pwd") == 0) {
+        buildin_pwd(argc, argv);
+    } else if (strcmp(argv[0], "mkdir") == 0) {
+        buildin_mkdir(argc, argv);
     }
 }
 

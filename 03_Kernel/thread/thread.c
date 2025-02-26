@@ -150,6 +150,7 @@ void init_thread_pcb(struct PCB_INFO* thread_pcb, char* name, int prio) {
     thread_pcb->fd_table[6] = -1;
     thread_pcb->fd_table[7] = -1;
 
+    thread_pcb->cwd_inode_num = 0;         // 默认为根目录 inode
     thread_pcb->stack_magic = 0x19870916;  // 自定义的魔数
 }
 /* 由 thread_func 去执行 start_routine(arg) */
