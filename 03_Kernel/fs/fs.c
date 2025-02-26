@@ -64,7 +64,7 @@ void fs_bitmap_sync(struct partition* part, uint32_t bit_idx, enum partition_bit
     ide_write(part->my_disk, sec_lba, bitmap_ptr, 1);
 }
 
-/* 在分区链表中找到名指定名称的分区, 并将其指针赋值给cur_part */
+/* 在分区链表中找到名指定名称的分区, 并将其指针赋值给g_curPartion */
 static bool mount_partition(struct list_elem* pelem, int arg) {
     char* part_name = (char*)arg;
     struct partition* part = GET_ENTRYPTR_FROM_LISTTAG(struct partition, part_tag, pelem);
@@ -73,7 +73,7 @@ static bool mount_partition(struct list_elem* pelem, int arg) {
         struct disk* hd = g_curPartion->my_disk;
         /* sb_buf用来存储从硬盘上读入的超级块 */
         struct super_block* sb_buf = (struct super_block*)sys_malloc(SECTOR_SIZE);
-        /* 在内存中创建分区cur_part的超级块 */
+        /* 在内存中创建分区g_curPartion的超级块 */
         g_curPartion->sb = (struct super_block*)sys_malloc(sizeof(struct super_block));
         if (g_curPartion->sb == NULL) {
             PANIC("alloc memory failed!");
@@ -396,6 +396,7 @@ int32_t sys_mkdir(const char* pathname) {
     p_direntry->f_type = FT_DIRECTORY;
     /* 写入到硬盘 */
     ide_write(g_curPartion->my_disk, new_inode.i_sectors[0], io_buf, 1);
+    new_inode.i_size = sizeof(struct dir_entry) * 2;
 
     /* 将目录添加到父目录中 */
     struct dir_entry new_dir_entry;
@@ -560,9 +561,60 @@ void sys_putchar(char c) {
     console_put_char(c);
 }
 
+/* 获得父目录的 inode 编号 */
+static uint32_t get_parentdir_inodenum(uint32_t inode_num, void* io_buf) {
+    struct inode* child_dir_inode = inode_open(g_curPartion, inode_num);
+    /* 目录中的目录项".."中包括父目录inode编号,".."位于目录的第0块 */
+    uint32_t block_lba = child_dir_inode->i_sectors[0];
+    inode_close(child_dir_inode);
+    ide_read(g_curPartion->my_disk, block_lba, io_buf, 1);   
+    struct dir_entry* dir_e = (struct dir_entry*)io_buf;
+    /* 第0个目录项是".",第1个目录项是".." */
+    return dir_e[1].i_no;
+}
+
+/* 在 parent_inode_num 的目录中查找 inode 编号为 child_inode_num 的子目录的名字: 成功返回0, 失败返-1 */
+static int get_childdir_name(uint32_t parent_inode_num, uint32_t child_inode_num, char* path, void* io_buf) {
+    struct inode* parent_dir_inode = inode_open(g_curPartion, parent_inode_num);
+    uint8_t block_idx = 0;
+    uint32_t all_blocks[140] = { 0 };
+    while (block_idx < 12) {
+        all_blocks[block_idx] = parent_dir_inode->i_sectors[block_idx];
+        block_idx++;
+    }
+    if (parent_dir_inode->i_sectors[12] != 0) {  // 包含间接块
+        ide_read(g_curPartion->my_disk, parent_dir_inode->i_sectors[12], all_blocks + 12, 1);
+    }
+    inode_close(parent_dir_inode);
+ 
+    struct dir_entry* dir_e = (struct dir_entry*)io_buf;
+    uint32_t dir_entry_size = g_curPartion->sb->dir_entry_size;
+    uint32_t dir_entrys_per_sec = (512 / dir_entry_size);
+    block_idx = 0;
+
+    while(block_idx < 140) {
+       if(all_blocks[block_idx] != 0) {
+            ide_read(g_curPartion->my_disk, all_blocks[block_idx], io_buf, 1);
+            uint8_t dir_e_idx = 0;
+            /* 遍历每个目录项 */
+            while(dir_e_idx < dir_entrys_per_sec) {
+                if ((dir_e + dir_e_idx)->i_no == child_inode_num) {
+                    strcat(path, "/");
+                    strcat(path, (dir_e + dir_e_idx)->filename);
+                    return 0;
+                }
+                dir_e_idx++;
+            }
+        }
+        block_idx++;
+    }
+    return -1;
+}
+
 /* 获取当前工作目录，成功返回 路径buf，失败返回 NULL，返回的 buf 由用户释放 */
 char* sys_getcwd() {
     char* path_buf = (char*)sys_malloc(MAX_PATH_LEN);
+    memset(path_buf, 0, MAX_PATH_LEN);
     if (path_buf == NULL) {
         printk("sys_getcwd: path_buf malloc failed!\n");
     }
@@ -572,6 +624,27 @@ char* sys_getcwd() {
         path_buf[1] = 0;
         return path_buf;
     }
+
+    int32_t parent_inode_num = 0;
+    void* io_buf = sys_malloc(SECTOR_SIZE);
+    char full_path_reverse[MAX_PATH_LEN] = {0};
+    while ((cwd_inode)) {
+        parent_inode_num = get_parentdir_inodenum(cwd_inode, io_buf);
+        if (get_childdir_name(parent_inode_num, cwd_inode, full_path_reverse, io_buf) == -1) {
+            sys_free(io_buf);
+            return NULL;
+        }
+        cwd_inode = parent_inode_num;
+    }
+
+    char* last_slash;  // 最后一个'/'的位置
+    while ((last_slash = strrchr(full_path_reverse, '/'))) {
+        uint16_t len = strlen(path_buf);
+        strcpy(path_buf + len, last_slash);
+        *last_slash = 0;
+    }
+    sys_free(io_buf);
+    return path_buf;
 }
 
 /* 在buf中填充文件结构相关信息: 成功时返回0, 失败返回-1 */
@@ -625,6 +698,24 @@ struct dir* sys_opendir(const char* name) {
     }
     dir_close(searched_record.parent_dir);
     return ret_dir;
+}
+
+/* 当前工作目录为绝对路径path: 成功则返回0, 失败返回-1 */
+int32_t sys_chdir(const char* path) {
+    int32_t ret = -1;
+    struct path_search_record searched_record;  
+    memset(&searched_record, 0, sizeof(struct path_search_record));
+    int inode_no = search_file(path, &searched_record);
+    if (inode_no != -1) {
+        if (searched_record.filetype == FT_DIRECTORY) {
+            get_curthread_pcb()->cwd_inode_num = inode_no;
+            ret = 0;
+        } else {
+            printk("chdir: %s is not a directory!\n", path);
+        }
+    }
+    dir_close(searched_record.parent_dir); 
+    return ret;
 }
 
 /* 读取目录 dir 的1个目录项: 成功后返回其目录项地址, 到目录尾时或出错时返回 NULL */

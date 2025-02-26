@@ -170,3 +170,22 @@ void buildin_ls(uint32_t argc, char** argv) {
         }
     }
 }
+
+int32_t buildin_cd(uint32_t argc, char** argv) {
+    if (argc > 2) {
+        printf("cd: using 'cd [dirname]' to change dir!\n");
+        return -1;
+    }
+    if (argc == 1) {
+        g_finalPath[0] = '/';
+        g_finalPath[1] = 0;
+        return -1;
+    }
+    path_to_abspath(argv[1], g_finalPath);
+    printf("cd: abs path is '%s'!\n", g_finalPath);
+    if (chdir(g_finalPath) == -1) {
+        printf("cd: no such directory %s\n", g_finalPath);
+        return -1;
+    }
+    return 0;
+}

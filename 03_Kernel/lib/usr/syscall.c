@@ -29,6 +29,7 @@ void syscall_init() {
     g_Syscall_Table[SYS_READDIR]  = sys_readdir;
     g_Syscall_Table[SYS_REWINDDIR]  = sys_rewinddir;
     g_Syscall_Table[SYS_CLOSEDIR]  = sys_closedir;
+    g_Syscall_Table[SYS_CHDIR]  = sys_chdir;
     put_str("syscall_init done\n");
 }
 
@@ -133,6 +134,11 @@ int32_t stat(const char* pathname, struct stat_info* buf) {
 /* 打开目录：成功后返回目录指针, 失败返回 NULL */
 struct dir* opendir(const char* name) {
     return _syscall1(SYS_OPENDIR, name);
+}
+
+/* 当前工作目录为绝对路径path: 成功则返回0, 失败返回-1 */
+int32_t chdir(const char* path) {
+    return _syscall1(SYS_CHDIR, path);
 }
 
 /* 读取目录 dir 的1个目录项: 成功后返回其目录项地址, 到目录尾时或出错时返回 NULL */

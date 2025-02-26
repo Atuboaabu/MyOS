@@ -19,6 +19,7 @@ enum syscall_nr {
     SYS_READDIR,
     SYS_REWINDDIR,
     SYS_CLOSEDIR,
+    SYS_CHDIR,
     SYSCALL_MAX
 };
 
@@ -44,5 +45,7 @@ struct dir_entry* readdir(struct dir* dir);
 void rewinddir(struct dir* dir);
 /* 关闭目录 dir: 成功返回 0, 失败返回-1 */
 int32_t closedir(struct dir* dir);
+/* 当前工作目录为绝对路径path: 成功则返回0, 失败返回-1 */
+int32_t chdir(const char* path);
 
 #endif

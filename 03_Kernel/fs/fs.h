@@ -80,6 +80,8 @@ int32_t sys_stat(const char* path, struct stat_info* buf);
 struct dir* sys_opendir(const char* name);
 /* 读取目录 dir 的1个目录项: 成功后返回其目录项地址, 到目录尾时或出错时返回 NULL */
 struct dir_entry* sys_readdir(struct dir* dir);
+/* 当前工作目录为绝对路径path: 成功则返回0, 失败返回-1 */
+int32_t sys_chdir(const char* path);
 /* 把目录dir的指针dir_pos置0 */
 void sys_rewinddir(struct dir* dir);
 /* 关闭目录 dir: 成功返回 0, 失败返回-1 */

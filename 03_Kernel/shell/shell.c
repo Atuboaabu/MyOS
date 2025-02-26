@@ -99,6 +99,11 @@ static void cmd_execute(uint32_t argc, char** argv) {
         buildin_pwd(argc, argv);
     } else if (strcmp(argv[0], "mkdir") == 0) {
         buildin_mkdir(argc, argv);
+    } else if (strcmp(argv[0], "cd") == 0) {
+        if (buildin_cd(argc, argv) == 0) {
+            memset(g_cwdCache, 0, MAX_PATH_LEN);
+            strcpy(g_cwdCache, g_finalPath);
+        }
     }
 }
 
