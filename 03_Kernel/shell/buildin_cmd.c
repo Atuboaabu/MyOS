@@ -202,3 +202,11 @@ int32_t buildin_cd(uint32_t argc, char** argv) {
     }
     return 0;
 }
+
+void buildin_clear(uint32_t argc, char** argv) {
+    if (argc != 1) {
+        printf("clear: no argument support!\n");
+        return;
+    }
+    clear();
+}
