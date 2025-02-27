@@ -82,6 +82,19 @@ void buildin_mkdir(uint32_t argc, char** argv) {
     return;
 }
 
+void buildin_rmdir(uint32_t argc, char** argv) {
+    if (argc != 2) {
+        printf("rmdir: using 'rmdir [dirname]' to remove dir!\n");
+    } else {
+        path_to_abspath(argv[1], g_finalPath);
+        printf("rmdir: abs path is '%s'!\n", g_finalPath);
+        if (strcmp("/", g_finalPath) != 0) {
+            rmdir(g_finalPath);
+        }
+    }
+    return;
+}
+
 void buildin_ls(uint32_t argc, char** argv) {
     bool long_list_flag = false;
     bool all_info_flag = false;

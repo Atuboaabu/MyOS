@@ -74,6 +74,8 @@ void sys_putchar(char c);
 char* sys_getcwd();
 /* 根据绝对路径 pathname 创建目录：成功返回 0；失败返回 -1 */
 int32_t sys_mkdir(const char* pathname);
+/* 删除空目录: 成功时返回0, 失败时返回-1*/
+int32_t sys_rmdir(const char* pathname);
 /* 在buf中填充文件结构相关信息: 成功时返回0, 失败返回-1 */
 int32_t sys_stat(const char* path, struct stat_info* buf);
 /* 打开目录：成功后返回目录指针, 失败返回 NULL */

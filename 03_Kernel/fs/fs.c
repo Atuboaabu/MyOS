@@ -433,6 +433,33 @@ rollback:
     return -1;
 }
 
+/* 删除空目录: 成功时返回0, 失败时返回-1*/
+int32_t sys_rmdir(const char* pathname) {
+    struct path_search_record searched_record;
+    memset(&searched_record, 0, sizeof(struct path_search_record));
+    int32_t inode_no = search_file(pathname, &searched_record);
+    int32_t retval = -1;
+    if (inode_no == -1) {
+        printk("rmdir: %s not exist\n", searched_record.searched_path); 
+    } else {
+        if (searched_record.filetype == FT_REGULAR) {
+            printk("rmdir: %s is not a directory!\n", pathname);
+        } else { 
+            struct dir* dir = dir_open(g_curPartion, inode_no);
+            if (!dir_is_empty(dir)) {  // 非空目录不可删除
+                printk("rmdir: dir %s is not empty!\n", pathname);
+            } else {
+                if (!dir_remove(searched_record.parent_dir, dir)) {
+                    retval = 0;
+                }
+            }
+            dir_close(dir);
+       }
+    }
+    dir_close(searched_record.parent_dir);
+    return retval;
+}
+
 /* 打开或创建文件成功后, 返回文件描述符, 否则返回-1 */
 int32_t sys_open(const char* pathname, uint8_t flags) {
     /* 对目录要用dir_open,这里只有open文件 */

@@ -14,6 +14,7 @@ enum syscall_nr {
     SYS_CLEAR,
     SYS_GETCWD,
     SYS_MKDIR,
+    SYS_RMDIR,
     SYS_STAT,
     SYS_OPENDIR,
     SYS_READDIR,
@@ -37,6 +38,8 @@ char* getcwd();
 int32_t stat(const char* pathname, struct stat_info* buf);
 /* 创建目录 */
 int32_t mkdir(const char* pathname);
+/* 删除空目录: 成功时返回0, 失败时返回-1*/
+int32_t rmdir(const char* pathname);
 /* 打开目录：成功后返回目录指针, 失败返回 NULL */
 struct dir* opendir(const char* name);
 /* 读取目录 dir 的1个目录项: 成功后返回其目录项地址, 到目录尾时或出错时返回 NULL */

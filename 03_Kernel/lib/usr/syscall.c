@@ -24,6 +24,7 @@ void syscall_init() {
     g_Syscall_Table[SYS_CLEAR]  = cls_screen;
     g_Syscall_Table[SYS_GETCWD]  = sys_getcwd;
     g_Syscall_Table[SYS_MKDIR]  = sys_mkdir;
+    g_Syscall_Table[SYS_RMDIR]  = sys_rmdir;
     g_Syscall_Table[SYS_STAT]  = sys_stat;
     g_Syscall_Table[SYS_OPENDIR]  = sys_opendir;
     g_Syscall_Table[SYS_READDIR]  = sys_readdir;
@@ -124,6 +125,11 @@ char* getcwd() {
 /* 创建目录 */
 int32_t mkdir(const char* pathname) {
     return _syscall1(SYS_MKDIR, pathname);
+}
+
+/* 删除空目录: 成功时返回0, 失败时返回-1*/
+int32_t rmdir(const char* pathname) {
+    return _syscall1(SYS_RMDIR, pathname);
 }
 
 /* 获取文件属性信息 */
