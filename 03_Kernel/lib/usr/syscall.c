@@ -4,6 +4,7 @@
 #include "console.h"
 #include "string.h"
 #include "fs.h"
+#include "fork.h"
 
 /***** 系统调用内核处理函数表 *****/
 void* g_Syscall_Table[SYSCALL_MAX];
@@ -31,6 +32,7 @@ void syscall_init() {
     g_Syscall_Table[SYS_REWINDDIR]  = sys_rewinddir;
     g_Syscall_Table[SYS_CLOSEDIR]  = sys_closedir;
     g_Syscall_Table[SYS_CHDIR]  = sys_chdir;
+    g_Syscall_Table[SYS_FORK]  = sys_fork;
     put_str("syscall_init done\n");
 }
 
@@ -160,4 +162,9 @@ void rewinddir(struct dir* dir) {
 /* 关闭目录 dir: 成功返回 0, 失败返回-1 */
 int32_t closedir(struct dir* dir) {
     return _syscall1(SYS_CLOSEDIR, dir);
+}
+
+/* fork子进程：成功后父进程返回子进程 pid，子进程返回0；失败返回 -1 */
+int32_t fork() {
+    return _syscall0(SYS_FORK);
 }

@@ -65,7 +65,8 @@ struct THREAD_STACK {
 /* 进程、线程的PCB：程序控制块 */
 struct PCB_INFO {
     uint32_t* self_kstack;                // 各内核线程都用自己的内核栈
-    pid_t pid;                            // 进程的PID
+    pid_t pid;                            // 进程的 pid
+    pid_t parent_pid;                     // 父进程的 pid
     enum TASK_STATUS status;
     char name[16];
     uint8_t priority;
@@ -99,6 +100,8 @@ void init_thread_stack(struct PCB_INFO* thread_pcb, thread_func start_routine, v
 struct PCB_INFO* thread_create(char* name, int prio, thread_func start_routine, void* arg);
 /* 挂起线程 */
 void thread_yield(void);
+/* 为 fork 进程提供 pid 获取函数 */
+pid_t fork_pid();
 
 void thread_init(void);
 

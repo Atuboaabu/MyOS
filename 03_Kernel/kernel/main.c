@@ -13,6 +13,7 @@
 #include "ide.h"
 #include "fs.h"
 #include "shell.h"
+#include "fork.h"
 
 extern struct ioqueue g_keyboardIOQueue;
 void thread_A(void *arg);
@@ -34,8 +35,8 @@ int main(void) {
 
     // thread_create("ThreadA", 20, thread_A, NULL);
     // thread_create("process_A", 20, process_A, NULL);
-    // process_execute(process_A, "process_A");
-    process_execute(shell_process, "process_A");
+    process_execute(process_A, "process_A");
+    // process_execute(shell_process, "shell");
     interrupt_enable();
     while(1) {
         // console_put_str("Main  ");
@@ -50,12 +51,20 @@ void thread_A(void *arg) {
 }
 
 void process_A(void *arg) {
-    printf("process_A pid = %d ", getpid());
+    printf("process_A pid = %d \n", getpid());
     void* addr = malloc(17);
     free(addr);
     void* addr1 = malloc(19);
-    printf("addr = 0x%x  ", (uint32_t)addr);
-    printf(" addr1 = 0x%x ", (uint32_t)addr1);
+    printf("addr = 0x%x  \n", (uint32_t)addr);
+    printf(" addr1 = 0x%x \n", (uint32_t)addr1);
+    int32_t pid = fork();
+    if (pid == 0) {
+        printf("I'm child process, pid = %d \n", getpid());
+    } else if (pid > 0) {
+        printf("I'm parend process, my child pid = %d \n", pid);
+    } else {
+        printf("fork error!\n");
+    }
     while(1) {
         // a = getpid();
     }

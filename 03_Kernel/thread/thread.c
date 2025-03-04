@@ -39,6 +39,11 @@ static pid_t allocate_pid() {
     return pid;
 }
 
+/* 为 fork 进程提供 pid 获取函数 */
+pid_t fork_pid() {
+    return allocate_pid();
+}
+
 /* 获取当前进程/线程 pid */
 uint32_t sys_getpid() {
     return get_curthread_pcb()->pid;
@@ -160,18 +165,18 @@ static void thread_running(thread_func start_routine, void* arg) {
 }
 /* 初始化线程栈 THREAD_STACK, 将待执行的函数和参数放到 THREAD_STACK 中相应的位置 */
 void init_thread_stack(struct PCB_INFO* thread_pcb, thread_func start_routine, void* arg) {
-   /* 预留中断栈空间 */
-   thread_pcb->self_kstack -= sizeof(struct INTR_STACK);
-   /* 预留线程栈空间 */
-   thread_pcb->self_kstack -= sizeof(struct THREAD_STACK);
-   struct THREAD_STACK* kthread_stack = (struct THREAD_STACK*)thread_pcb->self_kstack;
-   kthread_stack->eip = thread_running;
-   kthread_stack->function = start_routine;
-   kthread_stack->func_arg = arg;
-   kthread_stack->ebp = 0;
-   kthread_stack->ebx = 0;
-   kthread_stack->esi = 0;
-   kthread_stack->edi = 0;
+    /* 预留中断栈空间 */
+    thread_pcb->self_kstack -= sizeof(struct INTR_STACK);
+    /* 预留线程栈空间 */
+    thread_pcb->self_kstack -= sizeof(struct THREAD_STACK);
+    struct THREAD_STACK* kthread_stack = (struct THREAD_STACK*)thread_pcb->self_kstack;
+    kthread_stack->eip = thread_running;
+    kthread_stack->function = start_routine;
+    kthread_stack->func_arg = arg;
+    kthread_stack->ebp = 0;
+    kthread_stack->ebx = 0;
+    kthread_stack->esi = 0;
+    kthread_stack->edi = 0;
 }
 /* 创建一优先级为prio的线程, 线程名为name, 线程所执行的函数是 function(func_arg) */
 struct PCB_INFO* thread_create(char* name, int prio, thread_func start_routine, void* arg) {

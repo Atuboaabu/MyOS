@@ -14,5 +14,11 @@
 void process_active(struct PCB_INFO* p_pcb);
 /* 创建进程 */
 void process_execute(void* filename, char* name);
+/* 用户程序的 bitmap 创建 */
+void process_bitmap_create(struct PCB_INFO* p_pcb);
+/* 创建进程的页目录表 */
+uint32_t* process_create_pgdir();
+/* 激活页表 */
+void process_pgdir_active(struct PCB_INFO* p_pcb);
 
 #endif

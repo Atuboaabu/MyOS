@@ -85,7 +85,11 @@ struct mem_block_pool {
 void memory_init();
 void* get_kernel_pages(uint32_t cnt);
 void* get_user_pages(uint32_t cnt);
+/* 释放以虚拟地址 virtual_addr 为起始的 pg_cnt 个物理页框 */
+void page_free(enum pool_flag pf, void* virtual_addr, uint32_t pg_cnt);
 void* bind_vaddr_with_mempool(enum pool_flag pf, uint32_t vaddr);
+/* 申请一页内存与vaddr绑定，但不设置vaddr的bitmap */
+void* get_a_page_without_set_vaddrbmp(enum pool_flag pf, uint32_t vaddr);
 uint32_t vaddr_to_phyaddr(uint32_t vaddr);
 void mem_block_pool_init(struct mem_block_pool* block_array);
 

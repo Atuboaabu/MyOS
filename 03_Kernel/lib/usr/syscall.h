@@ -21,6 +21,7 @@ enum syscall_nr {
     SYS_REWINDDIR,
     SYS_CLOSEDIR,
     SYS_CHDIR,
+    SYS_FORK,
     SYSCALL_MAX
 };
 
@@ -50,5 +51,7 @@ void rewinddir(struct dir* dir);
 int32_t closedir(struct dir* dir);
 /* 当前工作目录为绝对路径path: 成功则返回0, 失败返回-1 */
 int32_t chdir(const char* path);
+/* fork子进程：成功后父进程返回子进程 pid，子进程返回0；失败返回 -1 */
+int32_t fork();
 
 #endif

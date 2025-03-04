@@ -180,13 +180,27 @@ void* bind_vaddr_with_mempool(enum pool_flag pf, uint32_t vaddr) {
         ASSERT(bit_idx > 0);
         bitmap_set(&(cur_thread_pcb->user_virtual_addr.pool_bitmap), bit_idx, 1);
     } else if (cur_thread_pcb->pgdir == NULL && pf == POOL_FLAG_KERNEL){
-    /* 如果是内核线程申请内核内存,就修改kernel_vaddr. */
+        /* 如果是内核线程申请内核内存,就修改kernel_vaddr. */
         bit_idx = (vaddr - kernel_virtual_addr.addr_start) / PAGE_SIZE;
         ASSERT(bit_idx > 0);
         bitmap_set(&(kernel_virtual_addr.pool_bitmap), bit_idx, 1);
     } else {
         put_str("get_a_page: Wrong operation!\n");
     }
+
+    void* page_phyaddr = palloc(mem_pool);
+    if (page_phyaddr == NULL) {
+        return NULL;
+    }
+    page_table_add((void*)vaddr, page_phyaddr);
+    lock_release(&(mem_pool->lock));
+    return (void*)vaddr;
+}
+
+/* 申请一页内存与vaddr绑定，但不设置vaddr的bitmap */
+void* get_a_page_without_set_vaddrbmp(enum pool_flag pf, uint32_t vaddr) {
+    struct memory_poll* mem_pool = ((pf == POOL_FLAG_KERNEL) ? &kernel_memory_pool : &user_memory_pool);
+    lock_acquire(&(mem_pool->lock));
 
     void* page_phyaddr = palloc(mem_pool);
     if (page_phyaddr == NULL) {
