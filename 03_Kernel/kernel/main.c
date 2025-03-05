@@ -36,7 +36,7 @@ int main(void) {
     // thread_create("ThreadA", 20, thread_A, NULL);
     // thread_create("process_A", 20, process_A, NULL);
     process_execute(process_A, "process_A");
-    // process_execute(shell_process, "shell");
+    process_execute(shell_process, "shell");
     interrupt_enable();
     while(1) {
         // console_put_str("Main  ");

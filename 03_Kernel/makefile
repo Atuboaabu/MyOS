@@ -14,7 +14,7 @@ OBJS = $(BUILD_DIR)/main.o $(BUILD_DIR)/interrupt.o $(BUILD_DIR)/timer.o \
 	   $(BUILD_DIR)/stdio.o $(BUILD_DIR)/stdio_kernel.o $(BUILD_DIR)/ide.o \
 	   $(BUILD_DIR)/fs.o $(BUILD_DIR)/inode.o $(BUILD_DIR)/dir.o \
 	   $(BUILD_DIR)/file.o $(BUILD_DIR)/shell.o $(BUILD_DIR)/buildin_cmd.o \
-	   $(BUILD_DIR)/fork.o
+	   $(BUILD_DIR)/fork.o $(BUILD_DIR)/exec.o $(BUILD_DIR)/system.o
 ENTRY_POINT = 0xc0001500
 LD = ld
 LDFLAGS = -m elf_i386 -Ttext $(ENTRY_POINT) -e main -Map $(BUILD_DIR)/kernel.map
@@ -58,6 +58,10 @@ $(BUILD_DIR)/tss.o: usrprog/tss.c usrprog/tss.h
 $(BUILD_DIR)/process.o: usrprog/process.c usrprog/process.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
 $(BUILD_DIR)/fork.o: usrprog/fork.c usrprog/fork.h
+	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
+$(BUILD_DIR)/exec.o: usrprog/exec.c usrprog/exec.h
+	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
+$(BUILD_DIR)/system.o: usrprog/system.c usrprog/system.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
 $(BUILD_DIR)/syscall.o: lib/usr/syscall.c lib/usr/syscall.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@

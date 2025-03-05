@@ -538,22 +538,22 @@ int32_t sys_close(int32_t fd) {
     return ret;
  }
 
-/* 将buf中连续 count 个字节写入文件描述符fd, 成功则返回写入的字节数, 失败返回-1 */
-int32_t sys_write(int32_t fd, const void* buf, uint32_t count) {
+/* 将buf中连续 size 个字节写入文件描述符fd, 成功则返回写入的字节数, 失败返回-1 */
+int32_t sys_write(int32_t fd, const void* buf, uint32_t size) {
     if (fd < 0) {
         printk("sys_write: fd error\n");
         return -1;
     }
     if (fd == stdout) {  
         char tmp_buf[1024] = {0};
-        memcpy(tmp_buf, buf, count);
+        memcpy(tmp_buf, buf, size);
         console_put_str(tmp_buf);
-        return count;
+        return size;
     }
     uint32_t global_fd = localfd_to_globalfd(fd);
     struct file* wr_file = &g_fielTable[global_fd];
     if (wr_file->fd_flag & O_WRONLY || wr_file->fd_flag & O_RDWR) {
-        uint32_t bytes_written  = file_write(wr_file, buf, count);
+        uint32_t bytes_written  = file_write(wr_file, buf, size);
         return bytes_written;
     } else {
         console_put_str("sys_write: not allowed to write file without flag O_RDWR or O_WRONLY\n");
@@ -561,8 +561,8 @@ int32_t sys_write(int32_t fd, const void* buf, uint32_t count) {
     }
 }
  
-/* 从文件描述符fd指向的文件中读取count个字节到buf, 若成功则返回读出的字节数, 到文件尾则返回-1 */
-int32_t sys_read(int32_t fd, void* buf, uint32_t count) {
+/* 从文件描述符fd指向的文件中读取 size 个字节到buf, 若成功则返回读出的字节数, 到文件尾则返回-1 */
+int32_t sys_read(int32_t fd, void* buf, uint32_t size) {
     ASSERT(buf != NULL);
     int32_t ret = -1;
     if (fd < 0 || fd == stdout || fd == stderr) {
@@ -570,7 +570,7 @@ int32_t sys_read(int32_t fd, void* buf, uint32_t count) {
     } else if (fd == stdin) {
         char* buffer = buf;
         uint32_t bytes_read = 0;
-        while (bytes_read < count) {
+        while (bytes_read < size) {
             *buffer = ioqueue_getchar(&g_keyboardIOQueue);
             bytes_read++;
             buffer++;
@@ -578,10 +578,45 @@ int32_t sys_read(int32_t fd, void* buf, uint32_t count) {
         ret = (bytes_read == 0 ? -1 : (int32_t)bytes_read);
     } else {
        uint32_t global_fd = localfd_to_globalfd(fd);
-       ret = file_read(&g_fielTable[global_fd], buf, count);   
+       ret = file_read(&g_fielTable[global_fd], buf, size);   
     }
     return ret;
- }
+}
+
+/* 重置用于文件读写操作的偏移指针: 成功时返回新的偏移量, 失败返回 -1 */
+int32_t sys_lseek(int32_t fd, int32_t offset, uint8_t whence) {
+    if (fd < 0) {
+       printk("sys_lseek: fd error\n");
+       return -1;
+    }
+    if (!((whence >= SEEK_SET) && (whence <= SEEK_END))) {
+        return -1;
+    }
+    uint32_t global_fd = localfd_to_globalfd(fd);
+    struct file* pf = &g_fielTable[global_fd];
+    int32_t new_pos = 0;
+    int32_t file_size = (int32_t)pf->fd_inode->i_size;
+    switch (whence) {
+        /* SEEK_SET 新的读写位置是相对于文件开头再增加offset个位移量 */
+        case SEEK_SET:
+            new_pos = offset;
+            break;
+
+        /* SEEK_CUR 新的读写位置是相对于当前的位置增加offset个位移量 */
+        case SEEK_CUR:
+            new_pos = (int32_t)pf->fd_pos + offset;
+            break;
+
+        /* SEEK_END 新的读写位置是相对于文件尺寸再增加offset个位移量 */
+        case SEEK_END:
+            new_pos = file_size + offset;
+    }
+    if ((new_pos < 0) || (new_pos > (file_size - 1))) {
+        return -1;
+    }
+    pf->fd_pos = new_pos;
+    return pf->fd_pos;
+}
 
 /* 向屏幕输出一个字符 */
 void sys_putchar(char c) {

@@ -20,6 +20,20 @@ void memcpy(void* dst, const void* src, uint32_t size) {
     }
 }
 
+int memcmp(const void* ptr1, const void* ptr2, uint32_t size) {
+    const char* p1 = ptr1;
+    const char* p2 = ptr2;
+    ASSERT(p1 != NULL || p2 != NULL);
+    while (size-- > 0) {
+        if(*p1 != *p2) {
+            return *p1 > *p2 ? 1 : -1; 
+        }
+        p1++;
+        p2++;
+    }
+    return 0;
+}
+
 char* strcpy(char* dst, const char* src) {
    ASSERT(dst != NULL && src != NULL);
    char* p = dst;
@@ -27,7 +41,7 @@ char* strcpy(char* dst, const char* src) {
    return p;
 }
 
-int8_t strcmp (const char* str1, const char* str2) {
+int8_t strcmp(const char* str1, const char* str2) {
     ASSERT(str1 != NULL && str2 != NULL);
     while (*str1 != 0 && *str1 == *str2) {
         str1++;

@@ -108,6 +108,30 @@ static void cmd_execute(uint32_t argc, char** argv) {
             memset(g_cwdCache, 0, MAX_PATH_LEN);
             strcpy(g_cwdCache, g_finalPath);
         }
+    } else {
+        int32_t pid = fork();
+        if (pid > 0) {  // 父进程
+            int32_t status;
+            int32_t child_pid = wait(&status);
+            if (child_pid == -1) {
+                printf("no child to wait!\n");
+            }
+            printf("child process %d exit with status %d!\n", child_pid, status);
+        } else if (pid == 0) {  // 子进程
+            path_to_abspath(argv[0], g_finalPath);
+            argv[0] = g_finalPath;
+
+            struct stat_info file_stat;
+            memset(&file_stat, 0, sizeof(struct stat_info));
+            if (stat(argv[0], &file_stat) == -1) {
+                printf("cannot access %s: No such file or directory\n", argv[0]);
+                exit(-1);
+            } else {
+                execv(argv[0], argv);
+            }
+        } else {  // fork 失败
+            // do nothing now
+        }
     }
 }
 

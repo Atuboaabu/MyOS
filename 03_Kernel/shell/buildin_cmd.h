@@ -3,6 +3,9 @@
 
 #include "stdint.h"
 
+/* 将 path 处理为绝对路径 */
+void path_to_abspath(char* path, char* ret_path);
+
 /* cmd ls */
 void buildin_ls(uint32_t argc, char** argv);
 /* cmd pwd */

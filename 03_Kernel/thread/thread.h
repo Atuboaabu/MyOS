@@ -11,6 +11,8 @@ typedef uint16_t pid_t;
 
 /* 单进程最大文件数 */
 #define PROCESS_MAX_FILE_NUM (8)
+/* 进程名称最大长度 */
+#define PROCESS_NAME_MAX_LEN (16)
 
 /* 进程、线程状态枚举 */
 enum TASK_STATUS {
@@ -68,7 +70,7 @@ struct PCB_INFO {
     pid_t pid;                            // 进程的 pid
     pid_t parent_pid;                     // 父进程的 pid
     enum TASK_STATUS status;
-    char name[16];
+    char name[PROCESS_NAME_MAX_LEN];
     uint8_t priority;
     uint8_t ticks;                        // 每次在处理器上执行的时间嘀嗒数
     uint32_t elapsed_ticks;               // 此任务自上cpu运行后至今占用了多少cpu嘀嗒数
@@ -81,6 +83,7 @@ struct PCB_INFO {
     struct mem_block_pool user_memblock_pools[MEMORY_POOL_COUNT];  // 用户进程的堆内存池
     int32_t fd_table[PROCESS_MAX_FILE_NUM];       // 打开的文件描述符数组
     uint32_t cwd_inode_num;               // 当前目录 inode 编号
+    int8_t exit_status;                   // 进程结束时的退出状态
     uint32_t stack_magic;                 // 用这串数字做栈的边界标记,用于检测栈的溢出
 };
 
@@ -98,10 +101,16 @@ void init_thread_pcb(struct PCB_INFO* thread_pcb, char* name, int prio);
 void init_thread_stack(struct PCB_INFO* thread_pcb, thread_func start_routine, void* arg);
 /* 创建新的线程 */
 struct PCB_INFO* thread_create(char* name, int prio, thread_func start_routine, void* arg);
+/* 回收 thread_over 的 pcb 和页表, 并将其从调度队列中去除 */
+void thread_exit(struct PCB_INFO* thread_over, bool need_schedule);
 /* 挂起线程 */
 void thread_yield(void);
 /* 为 fork 进程提供 pid 获取函数 */
 pid_t fork_pid();
+/* 释放pid */
+void release_pid(pid_t pid);
+/* 根据 pid 找 pcb: 若找到则返回该 pcb地址, 否则返回 NULL */
+struct PCB_INFO* get_thread_PCB(pid_t pid);
 
 void thread_init(void);
 

@@ -83,10 +83,16 @@ struct mem_block_pool {
 #define MEMORY_POOL_COUNT (7)
 
 void memory_init();
+/* 获取虚拟地址 vaddr 对应的 pde 的指针 */
+uint32_t* get_pde_ptr(uint32_t vaddr);
+/* 获取虚拟地址 vaddr 对应的 pte 指针 */
+uint32_t* get_pte_ptr(uint32_t vaddr);
 void* get_kernel_pages(uint32_t cnt);
 void* get_user_pages(uint32_t cnt);
 /* 释放以虚拟地址 virtual_addr 为起始的 pg_cnt 个物理页框 */
 void page_free(enum pool_flag pf, void* virtual_addr, uint32_t pg_cnt);
+/* 根据物理页框地址 phy_addr 在相应的内存池的位图清0, 不改动页表*/
+void free_a_phy_page(uint32_t phy_addr);
 void* bind_vaddr_with_mempool(enum pool_flag pf, uint32_t vaddr);
 /* 申请一页内存与vaddr绑定，但不设置vaddr的bitmap */
 void* get_a_page_without_set_vaddrbmp(enum pool_flag pf, uint32_t vaddr);

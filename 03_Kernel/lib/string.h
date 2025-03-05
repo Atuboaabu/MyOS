@@ -6,6 +6,8 @@
 void memset(void* dst, uint8_t val, uint32_t size);
 /* 从 dst 地址起将 size 个字节的值拷贝到 dst */
 void memcpy(void* dst, const void* src, uint32_t size);
+/* 连续比较以地址 ptr1 和地址 ptr2 开头的 size 个字节: 若相等则返回0, 若 ptr1 大于 ptr2 返回 1, 否则返回 -1 */
+int memcmp(const void* ptr1, const void* ptr2, uint32_t size);
 /* 复制字符串 src 到 dst */
 char* strcpy(char* dst, const char* src);
 /* 比较两个字符串,若 str1 中的字符大于 str2 中的字符返回1, 相等时返回0, 否则返回-1. */

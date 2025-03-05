@@ -385,6 +385,20 @@ void page_free(enum pool_flag pf, void* virtual_addr, uint32_t pg_cnt) {
     remove_virtual_addr(pf, virtual_addr, pg_cnt);
 }
 
+/* 根据物理页框地址 phy_addr 在相应的内存池的位图清0, 不改动页表*/
+void free_a_phy_page(uint32_t phy_addr) {
+    struct memory_poll* mem_pool;
+    uint32_t bit_idx = 0;
+    if (phy_addr >= user_memory_pool.addr_start) {
+        mem_pool = &user_memory_pool;
+        bit_idx = (phy_addr - user_memory_pool.addr_start) / PAGE_SIZE;
+    } else {
+        mem_pool = &kernel_memory_pool;
+        bit_idx = (phy_addr - kernel_memory_pool.addr_start) / PAGE_SIZE;
+    }
+    bitmap_set(&mem_pool->pool_bitmap, bit_idx, 0);
+}
+
 /* 释放内存 */
 void sys_free(void* ptr) {
     if (ptr == NULL) {

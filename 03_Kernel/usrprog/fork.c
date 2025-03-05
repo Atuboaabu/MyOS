@@ -75,13 +75,17 @@ static int32_t build_child_process_stack(struct PCB_INFO* child_thread_pcb, stru
     struct INTR_STACK* intr_stack = (struct INTR_STACK*)((uint32_t)child_thread_pcb + PAGE_SIZE - sizeof(struct INTR_STACK));
     intr_stack->eax = 0;
     /* 修改线程栈信息 */
-    struct THREAD_STACK* thread_stack = (struct THREAD_STACK*)(intr_stack - sizeof(struct THREAD_STACK));
-    thread_stack->ebp = 0;
-    thread_stack->ebx = 0;
-    thread_stack->esi = 0;
-    thread_stack->edi = 0;
-    thread_stack->eip = interrupt_exit;
-    child_thread_pcb->self_kstack = thread_stack;
+    uint32_t* ret_addr = (uint32_t*)intr_stack - 1;
+    uint32_t* esi_addr = (uint32_t*)intr_stack - 2;
+    uint32_t* edi_addr = (uint32_t*)intr_stack - 3;
+    uint32_t* ebx_addr = (uint32_t*)intr_stack - 4;
+    uint32_t* ebp_addr = (uint32_t*)intr_stack - 5;
+    *ret_addr = (uint32_t)interrupt_exit;
+    *esi_addr = 0;
+    *edi_addr = 0;
+    *ebx_addr = 0;
+    *ebp_addr = 0;
+    child_thread_pcb->self_kstack = ebp_addr;
     return 0;
 }
 
@@ -137,5 +141,5 @@ pid_t sys_fork() {
     list_append(&g_readyThreadList, &child_thread_pcb->general_tag);
     /* 加入全部线程队列 */
     list_append(&g_allThreadList, &child_thread_pcb->all_list_tag);
-    return 0;
+    return child_thread_pcb->pid;
 }

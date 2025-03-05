@@ -31,6 +31,13 @@ enum oflag {
     O_CREAT = 4  // 创建
 };
 
+/* 文件读写位置偏移量 */
+enum whence {
+    SEEK_SET = 1,
+    SEEK_CUR,
+    SEEK_END
+};
+
 /* 用来记录查找文件过程中已找到的上级路径 */
 struct path_search_record {
     char searched_path[MAX_PATH_LEN];  // 查找过程中的父路径
@@ -64,10 +71,12 @@ char* path_parse(char* pathname, char* dirname);
 int32_t sys_open(const char* pathname, uint8_t flags);
 /* 关闭文件描述符fd指向的文件, 成功返回0, 否则返回-1 */
 int32_t sys_close(int32_t fd);
-/* 将buf中连续 count 个字节写入文件描述符fd, 成功则返回写入的字节数, 失败返回-1 */
-int32_t sys_write(int32_t fd, const void* buf, uint32_t count);
-/* 从文件描述符fd指向的文件中读取count个字节到buf, 若成功则返回读出的字节数, 到文件尾则返回-1 */
-int32_t sys_read(int32_t fd, void* buf, uint32_t count);
+/* 将buf中连续 size 个字节写入文件描述符fd, 成功则返回写入的字节数, 失败返回-1 */
+int32_t sys_write(int32_t fd, const void* buf, uint32_t size);
+/* 从文件描述符fd指向的文件中读取 size 个字节到buf, 若成功则返回读出的字节数, 到文件尾则返回-1 */
+int32_t sys_read(int32_t fd, void* buf, uint32_t size);
+/* 重置用于文件读写操作的偏移指针: 成功时返回新的偏移量, 失败返回 -1 */
+int32_t sys_lseek(int32_t fd, int32_t offset, uint8_t whence);
 /* 向屏幕输出一个字符 */
 void sys_putchar(char c);
 /* 获取当前工作目录，成功返回 路径buf，失败返回 NULL，返回的 buf 由用户释放 */

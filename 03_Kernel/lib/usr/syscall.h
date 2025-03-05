@@ -22,6 +22,9 @@ enum syscall_nr {
     SYS_CLOSEDIR,
     SYS_CHDIR,
     SYS_FORK,
+    SYS_EXECV,
+    SYS_EXIT,
+    SYS_WAIT,
     SYSCALL_MAX
 };
 
@@ -53,5 +56,11 @@ int32_t closedir(struct dir* dir);
 int32_t chdir(const char* path);
 /* fork子进程：成功后父进程返回子进程 pid，子进程返回0；失败返回 -1 */
 int32_t fork();
+/* 让进程执行path路径对应的文件，argv为指定的参数 */
+int32_t execv(const char* path, const char* argv[]);
+/* 进程用来结束调用 */
+void exit(int32_t status);
+/* 等待子进程调用 exit, 将子进程的退出状态保存到status指向的变量: 成功则返回子进程的pid, 失败则返回 -1 */
+int32_t wait(int32_t* status);
 
 #endif
