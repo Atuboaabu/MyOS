@@ -25,6 +25,7 @@ enum syscall_nr {
     SYS_EXECV,
     SYS_EXIT,
     SYS_WAIT,
+    SYS_PS,
     SYSCALL_MAX
 };
 
@@ -62,5 +63,7 @@ int32_t execv(const char* path, const char* argv[]);
 void exit(int32_t status);
 /* 等待子进程调用 exit, 将子进程的退出状态保存到status指向的变量: 成功则返回子进程的pid, 失败则返回 -1 */
 int32_t wait(int32_t* status);
+/* 显示进程状态 */
+void ps();
 
 #endif

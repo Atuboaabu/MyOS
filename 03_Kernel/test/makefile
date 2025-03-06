@@ -2,8 +2,8 @@
 CC = gcc
 CFLAGS = -m32 -Wall -c -ffreestanding -fno-pic
 DIRS = lib/ lib/kernel/ lib/usr/ lib/kernel/list/ kernel/ device/ thread/ thread/semaphore/ thread/lock/ thread/condition_variable/ usrprog/ fs/ shell/
-INCLUDES = $(addprefix -I, $(DIRS))
-BUILD_DIR = ./build
+INCLUDES = $(addprefix -I../, $(DIRS))
+BUILD_DIR = ../build
 OBJS = $(BUILD_DIR)/main.o $(BUILD_DIR)/interrupt.o $(BUILD_DIR)/timer.o \
 	   $(BUILD_DIR)/debug.o $(BUILD_DIR)/print.o $(BUILD_DIR)/kernel.o \
 	   $(BUILD_DIR)/string.o $(BUILD_DIR)/bitmap.o $(BUILD_DIR)/memory.o \
@@ -23,89 +23,83 @@ ASMFLAGS = -f elf
 DISK_IMG = /home/atubo/bochs/hd60M.img
 
 ######## C文件编译 ########
-$(BUILD_DIR)/main.o: kernel/main.c 
+$(BUILD_DIR)/test_prog.o: ./test_prog.c 
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
-$(BUILD_DIR)/interrupt.o: kernel/interrupt.c kernel/interrupt.h 
+$(BUILD_DIR)/interrupt.o: ../kernel/interrupt.c ../kernel/interrupt.h 
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
-$(BUILD_DIR)/debug.o: kernel/debug.c kernel/debug.h 
+$(BUILD_DIR)/debug.o: ../kernel/debug.c ../kernel/debug.h 
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
-$(BUILD_DIR)/memory.o: kernel/memory.c kernel/memory.h 
+$(BUILD_DIR)/memory.o: ../kernel/memory.c ../kernel/memory.h 
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
-$(BUILD_DIR)/timer.o: device/timer.c device/timer.h
+$(BUILD_DIR)/timer.o: ../device/timer.c ../device/timer.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
-$(BUILD_DIR)/string.o: lib/string.c lib/string.h
+$(BUILD_DIR)/string.o: ../lib/string.c ../lib/string.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
-$(BUILD_DIR)/bitmap.o: lib/kernel/bitmap.c lib/kernel/bitmap.h
+$(BUILD_DIR)/bitmap.o: ../lib/kernel/bitmap.c ../lib/kernel/bitmap.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
-$(BUILD_DIR)/list.o: lib/kernel/list/list.c lib/kernel/list/list.h
+$(BUILD_DIR)/list.o: ../lib/kernel/list/list.c ../lib/kernel/list/list.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
-$(BUILD_DIR)/thread.o: thread/thread.c thread/thread.h
+$(BUILD_DIR)/thread.o: ../thread/thread.c ../thread/thread.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
-$(BUILD_DIR)/semaphore.o: thread/semaphore/semaphore.c thread/semaphore/semaphore.h
+$(BUILD_DIR)/semaphore.o: ../thread/semaphore/semaphore.c ../thread/semaphore/semaphore.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
-$(BUILD_DIR)/lock.o: thread/lock/lock.c thread/lock/lock.h
+$(BUILD_DIR)/lock.o: ../thread/lock/lock.c ../thread/lock/lock.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
-$(BUILD_DIR)/condition_variable.o: thread/condition_variable/condition_variable.c thread/condition_variable/condition_variable.h
+$(BUILD_DIR)/condition_variable.o: ../thread/condition_variable/condition_variable.c ../thread/condition_variable/condition_variable.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
-$(BUILD_DIR)/console.o: device/console.c device/console.h
+$(BUILD_DIR)/console.o: ../device/console.c ../device/console.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
-$(BUILD_DIR)/keyboard.o: device/keyboard.c device/keyboard.h
+$(BUILD_DIR)/keyboard.o: ../device/keyboard.c ../device/keyboard.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
-$(BUILD_DIR)/ioqueue.o: device/ioqueue.c device/ioqueue.h
+$(BUILD_DIR)/ioqueue.o: ../device/ioqueue.c ../device/ioqueue.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
-$(BUILD_DIR)/tss.o: usrprog/tss.c usrprog/tss.h
+$(BUILD_DIR)/tss.o: ../usrprog/tss.c ../usrprog/tss.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
-$(BUILD_DIR)/process.o: usrprog/process.c usrprog/process.h
+$(BUILD_DIR)/process.o: ../usrprog/process.c ../usrprog/process.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
-$(BUILD_DIR)/fork.o: usrprog/fork.c usrprog/fork.h
+$(BUILD_DIR)/fork.o: ../usrprog/fork.c ../usrprog/fork.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
-$(BUILD_DIR)/exec.o: usrprog/exec.c usrprog/exec.h
+$(BUILD_DIR)/exec.o: ../usrprog/exec.c ../usrprog/exec.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
-$(BUILD_DIR)/system.o: usrprog/system.c usrprog/system.h
+$(BUILD_DIR)/system.o: ../usrprog/system.c ../usrprog/system.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
-$(BUILD_DIR)/syscall.o: lib/usr/syscall.c lib/usr/syscall.h
+$(BUILD_DIR)/syscall.o: ../lib/usr/syscall.c ../lib/usr/syscall.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
-$(BUILD_DIR)/stdio.o: lib/stdio.c lib/stdio.h
+$(BUILD_DIR)/stdio.o: ../lib/stdio.c ../lib/stdio.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
-$(BUILD_DIR)/stdio_kernel.o: lib/kernel/stdio_kernel.c lib/kernel/stdio_kernel.h
+$(BUILD_DIR)/stdio_kernel.o: ../lib/kernel/stdio_kernel.c ../lib/kernel/stdio_kernel.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
-$(BUILD_DIR)/ide.o: device/ide.c device/ide.h
+$(BUILD_DIR)/ide.o: ../device/ide.c ../device/ide.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
-$(BUILD_DIR)/fs.o: fs/fs.c fs/fs.h
+$(BUILD_DIR)/fs.o: ../fs/fs.c ../fs/fs.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
-$(BUILD_DIR)/inode.o: fs/inode.c fs/inode.h
+$(BUILD_DIR)/inode.o: ../fs/inode.c ../fs/inode.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
-$(BUILD_DIR)/dir.o: fs/dir.c fs/dir.h
+$(BUILD_DIR)/dir.o: ../fs/dir.c ../fs/dir.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
-$(BUILD_DIR)/file.o: fs/file.c fs/file.h
+$(BUILD_DIR)/file.o: ../fs/file.c ../fs/file.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
-$(BUILD_DIR)/shell.o: shell/shell.c shell/shell.h
+$(BUILD_DIR)/shell.o: ../shell/shell.c ../shell/shell.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
-$(BUILD_DIR)/buildin_cmd.o: shell/buildin_cmd.c shell/buildin_cmd.h
+$(BUILD_DIR)/buildin_cmd.o: ../shell/buildin_cmd.c ../shell/buildin_cmd.h
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
 
 ######## 汇编文件编译 ########
-$(BUILD_DIR)/kernel.o: kernel/kernel.asm
+$(BUILD_DIR)/kernel.o: ../kernel/kernel.asm
 	$(ASM) $(ASMFLAGS) $< -o $@
-$(BUILD_DIR)/print.o: lib/kernel/print.asm
+$(BUILD_DIR)/print.o: ../lib/kernel/print.asm
 	$(ASM) $(ASMFLAGS) $< -o $@
-$(BUILD_DIR)/switch.o: thread/switch.asm
+$(BUILD_DIR)/switch.o: ../thread/switch.asm
 	$(ASM) $(ASMFLAGS) $< -o $@
 
 ######## 链接所有目标文件 ########
-$(BUILD_DIR)/kernel.bin: $(OBJS)
+$(BUILD_DIR)/test_prog.bin: $(OBJS)
 	echo "$(LD) $(LDFLAGS) $^ -o $@"
 	$(LD) $(LDFLAGS) $^ -o $@
 
-$(BUILD_DIR)/mbr.bin: boot/mbr_v3.asm
-	$(ASM) -f bin -Iboot/include/ $< -o $@
-
-$(BUILD_DIR)/loader.bin: boot/loader_v3.asm
-	$(ASM) -f bin -Iboot/include/ $< -o $@
-
 .PHONEY: mk_build_dir clean build all dd_disk
 
-build: $(BUILD_DIR)/kernel.bin $(BUILD_DIR)/mbr.bin $(BUILD_DIR)/loader.bin
+build: $(BUILD_DIR)/test_prog.bin
 
 mk_build_dir:
 	mkdir -p $(BUILD_DIR)
@@ -114,9 +108,7 @@ clean:
 	rm -rf $(BUILD_DIR)
 
 dd_disk:
-	dd if=build/mbr.bin of=$(DISK_IMG) bs=512 count=1 conv=notrunc
-	dd if=build/loader.bin of=$(DISK_IMG) bs=512 seek=2 count=6 conv=notrunc
-	dd if=build/kernel.bin of=$(DISK_IMG) bs=512 seek=9 count=200 conv=notrunc
+	dd if=$(BUILD_DIR)/test_prog.bin of=$(DISK_IMG) bs=512 seek=300 count=200 conv=notrunc
 	# truncate -s %512 $(DISK_IMG)
 
 all: mk_build_dir build dd_disk

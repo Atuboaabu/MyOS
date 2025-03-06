@@ -4,6 +4,7 @@
 #include "interrupt.h"
 #include "debug.h"
 #include "process.h"
+#include "file.h"
 
 #define PG_SIZE (4096)
 /* 主线程PCB */
@@ -70,6 +71,74 @@ pid_t fork_pid() {
 /* 获取当前进程/线程 pid */
 uint32_t sys_getpid() {
     return get_curthread_pcb()->pid;
+}
+
+/* 以填充空格的方式输出buf */
+static void pad_print(char* buf, int32_t buf_len, void* ptr, char format) {
+    memset(buf, 0, buf_len);
+    uint8_t out_pad_0idx = 0;
+    switch(format) {
+        case 's':
+            out_pad_0idx = sprintf(buf, "%s", ptr);
+            break;
+        case 'd':
+            out_pad_0idx = sprintf(buf, "%d", *((int16_t*)ptr));
+        case 'x':
+            out_pad_0idx = sprintf(buf, "%x", *((uint32_t*)ptr));
+    }
+    while(out_pad_0idx < buf_len) { // 以空格填充
+        buf[out_pad_0idx] = ' ';
+        out_pad_0idx++;
+    }
+    sys_write(stdout, buf, buf_len - 1);
+}
+
+/* 用于在list_traversal函数中的回调函数,用于针对线程队列的处理 */
+static bool print_thread_info(struct list_elem* pelem, int arg) {
+    struct PCB_INFO* pcb = GET_ENTRYPTR_FROM_LISTTAG(struct PCB_INFO, all_list_tag, pelem);
+    char out_pad[16] = { 0 };
+
+    pad_print(out_pad, 16, &pcb->pid, 'd');
+
+    if (pcb->parent_pid == -1) {
+        pad_print(out_pad, 16, "NULL", 's');
+    } else { 
+        pad_print(out_pad, 16, &pcb->parent_pid, 'd');
+    }
+ 
+    switch (pcb->status) {
+        case 0:
+            pad_print(out_pad, 16, "RUNNING", 's');
+            break;
+       case 1:
+            pad_print(out_pad, 16, "READY", 's');
+            break;
+        case 2:
+            pad_print(out_pad, 16, "BLOCKED", 's');
+            break;
+        case 3:
+            pad_print(out_pad, 16, "WAITING", 's');
+            break;
+        case 4:
+            pad_print(out_pad, 16, "HANGING", 's');
+            break;
+        case 5:
+            pad_print(out_pad, 16, "DIED", 's');
+    }
+
+    pad_print(out_pad, 16, &pcb->elapsed_ticks, 'x');
+    memset(out_pad, 0, 16);
+    memcpy(out_pad, pcb->name, 16);
+    strcat(out_pad, "\n");
+    sys_write(stdout, out_pad, strlen(out_pad));
+    return false;
+}
+
+/* 显示进程信息 */
+void sys_ps() {
+    char* ps_title = "PID            PPID           STAT           TICKS          COMMAND\n";
+    sys_write(stdout, ps_title, strlen(ps_title));
+    list_traversal(&g_allThreadList, print_thread_info, 0);
 }
 
 /**************** 线程调度相关函数 *******************/

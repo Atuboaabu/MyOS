@@ -7,6 +7,7 @@
 #include "fork.h"
 #include "exec.h"
 #include "system.h"
+#include "thread.h"
 
 /***** 系统调用内核处理函数表 *****/
 void* g_Syscall_Table[SYSCALL_MAX];
@@ -38,6 +39,7 @@ void syscall_init() {
     g_Syscall_Table[SYS_EXECV]  = sys_execv;
     g_Syscall_Table[SYS_EXIT]  = sys_exit;
     g_Syscall_Table[SYS_WAIT]  = sys_wait;
+    g_Syscall_Table[SYS_PS]    = sys_ps;
     put_str("syscall_init done\n");
 }
 
@@ -187,4 +189,9 @@ void exit(int32_t status) {
 /* 等待子进程调用 exit, 将子进程的退出状态保存到status指向的变量: 成功则返回子进程的pid, 失败则返回 -1 */
 int32_t wait(int32_t* status) {
     return _syscall1(SYS_WAIT, status);
+}
+
+/* 显示进程状态 */
+void ps() {
+    _syscall0(SYS_PS);
 }

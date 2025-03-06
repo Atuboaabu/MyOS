@@ -32,6 +32,7 @@ static void timer_inter_handle() {
         // put_int(curThreadPCB->ticks);
         // put_char('\n');
     }
+    curThreadPCB->elapsed_ticks++;
 }
 
 /* 以 tick 为单位的sleep, 任何时间形式的 sleep 会转换此ticks形式 */

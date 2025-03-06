@@ -14,10 +14,13 @@
 #include "fs.h"
 #include "shell.h"
 #include "fork.h"
+#include "ide.h"
 
+extern struct ide_channel g_ideChannelArray[2];
 extern struct ioqueue g_keyboardIOQueue;
 void thread_A(void *arg);
 void process_A();
+void writeBin();
 int a = 0;
 
 int main(void) {
@@ -35,13 +38,28 @@ int main(void) {
 
     // thread_create("ThreadA", 20, thread_A, NULL);
     // thread_create("process_A", 20, process_A, NULL);
-    process_execute(process_A, "process_A");
+    // process_execute(process_A, "process_A");
     process_execute(shell_process, "shell");
     interrupt_enable();
     while(1) {
         // console_put_str("Main  ");
     }
     return 0;
+}
+
+void writeBin() {
+    uint32_t file_size = 75436; 
+    uint32_t sec_cnt = (file_size + 512 - 1) / 512;
+    struct disk* sda = &g_ideChannelArray[0].devices[0];
+    void* prog_buf = sys_malloc(file_size);
+    ide_read(sda, 300, prog_buf, sec_cnt);
+    int32_t fd = sys_open("/test_prog", O_CREAT | O_RDWR);
+    if (fd != -1) {
+        if(sys_write(fd, prog_buf, file_size) == -1) {
+            printk("file write error!\n");
+            while(1);
+        }
+    }
 }
 
 void thread_A(void *arg) {

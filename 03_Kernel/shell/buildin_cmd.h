@@ -8,6 +8,8 @@ void path_to_abspath(char* path, char* ret_path);
 
 /* cmd ls */
 void buildin_ls(uint32_t argc, char** argv);
+/* cmd ps */
+void buildin_ps(uint32_t argc, char** argv);
 /* cmd pwd */
 void buildin_pwd(uint32_t argc, char** argv);
 /* cmd mkdir */

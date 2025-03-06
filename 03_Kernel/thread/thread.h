@@ -111,6 +111,8 @@ pid_t fork_pid();
 void release_pid(pid_t pid);
 /* 根据 pid 找 pcb: 若找到则返回该 pcb地址, 否则返回 NULL */
 struct PCB_INFO* get_thread_PCB(pid_t pid);
+/* 显示进程信息 */
+void sys_ps();
 
 void thread_init(void);
 

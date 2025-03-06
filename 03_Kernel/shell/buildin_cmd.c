@@ -95,6 +95,15 @@ void buildin_rmdir(uint32_t argc, char** argv) {
     return;
 }
 
+void buildin_ps(uint32_t argc, char** argv) {
+    if (argc != 1) {
+        printf("ps: using 'ps' to show process status!\n");
+    } else {
+        ps();
+    }
+    return;
+}
+
 void buildin_ls(uint32_t argc, char** argv) {
     bool long_list_flag = false;
     bool all_info_flag = false;
